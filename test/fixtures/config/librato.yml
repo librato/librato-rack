@@ -1,0 +1,11 @@
+test:
+  user: 'test@bar.com'
+  token: <%= 'test api key' %>
+  prefix: 'rails-test'
+  flush_interval: 30
+  source: 'custom-1'
+  source_pids: false
+  
+production:
+  user: 'live@bar.com'
+  token: 'live api key'
