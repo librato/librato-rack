@@ -1,19 +1,17 @@
-librato-rails
+librato-rack
 =======
 
-[![Build Status](https://secure.travis-ci.org/librato/librato-rails.png?branch=master)](http://travis-ci.org/librato/librato-rails)
+[![Build Status](https://secure.travis-ci.org/librato/librato-rack.png?branch=master)](http://travis-ci.org/librato/librato-rack)
 
-`librato-rails` will report key statistics for your Rails app to [Librato Metrics](https://metrics.librato.com/) and allow you to easily track your own custom metrics. Metrics are delivered asynchronously behind the scenes so they won't affect performance of your requests.
+`librato-rack` provides rack middleware which will report key statistics for your rack applications to [Librato Metrics](https://metrics.librato.com/). It will also allow you to easily track your own custom metrics. Metrics are delivered asynchronously behind the scenes so they won't affect performance of your requests.
 
-Currently Rails 3.0+ and Ruby 1.9.2+ are required.
-
-You may want to read the [notes on upgrading](https://github.com/librato/librato-rails/wiki/Alpha-Tester-Upgrade-Notes) if you were an alpha tester.
+Currently Ruby 1.9.2+ is required.
 
 ## Quick Start
 
-Installing `librato-rails` and relaunching your application will automatically start the reporting of metrics to your Metrics account.
+Install `librato-rack` and relaunching your application will automatically start the reporting of metrics to your Metrics account.
 
-After installation `librato-rails` will detect your environment and start reporting available performance information for your application.
+After installation `librato-rack` will detect your environment and start reporting available performance information for your application.
 
 Custom metrics can also be added easily:
 
@@ -32,15 +30,11 @@ Librato.measure 'user.social_graph.nodes', user.social_graph.size
 
 ## Installation
 
-In your `Gemfile` add:
-
-    gem 'librato-rails'
-
-Then run `bundle install`.
+    $ gem install librato-rack
 
 ## Configuration
 
-If you don't have a Metrics account already, [sign up](https://metrics.librato.com/). In order to send measurements to Metrics you need to provide your account credentials to `librato-rails`. You can provide these one of two ways:
+If you don't have a Metrics account already, [sign up](https://metrics.librato.com/). In order to send measurements to Metrics you need to provide your account credentials to `librato-rack`. You can provide these one of two ways:
 
 ##### Use a config file
 
@@ -199,4 +193,4 @@ If you are debugging setting up `librato-rails` locally you can set `flush_inter
 
 ## Copyright
 
-Copyright (c) 2012-2013 [Librato Inc.](http://librato.com) See LICENSE for details.
+Copyright (c) 2013 [Librato Inc.](http://librato.com) See LICENSE for details.
