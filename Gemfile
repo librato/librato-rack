@@ -1,14 +1,14 @@
 source "http://rubygems.org"
 gemspec
 
-# jquery-rails is used by the dummy application
-gem 'jquery-rails'
-gem 'capybara'
-gem 'pry'
-#gem 'minitest'
+# test application
+gem 'sinatra'
 
 # mocks
 gem 'mocha', :require => false
+
+# debugging
+gem 'pry'
 
 # benchmarking
 gem 'benchmark_suite'
