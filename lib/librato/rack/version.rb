@@ -1,3 +1,5 @@
-module Librato::Rack
-  VERSION = "0.1.0"
+module Librato
+  module Rack
+    VERSION = "0.1.0"
+  end
 end
