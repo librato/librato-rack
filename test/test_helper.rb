@@ -1,7 +1,13 @@
+require 'bundler'
+Bundler.setup
+
+require 'minitest/autorun'
 # require 'mocha/setup'
 
 # Configure Rails Environment
 ENV["RAILS_ENV"] = "test"
+
+require 'librato/rack'
 
 # require File.expand_path("../dummy/config/environment.rb",  __FILE__)
 # require "rails/test_help"

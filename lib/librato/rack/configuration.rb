@@ -18,10 +18,10 @@ module Librato::Rack
       self.flush_interval = 60
       
       # check environment
-      self.user = ENV['LIBRATO_USER']
-      self.token = ENV['LIBRATO_TOKEN']
-      self.prefix = ENV['LIBRATO_PREFIX']
-      self.source = ENV['LIBRATO_SOURCE']
+      self.user = ENV['LIBRATO_USER'] || ENV['LIBRATO_METRICS_USER']
+      self.token = ENV['LIBRATO_TOKEN'] || ENV['LIBRATO_METRICS_TOKEN']
+      self.prefix = ENV['LIBRATO_PREFIX'] || ENV['LIBRATO_METRICS_PREFIX']
+      self.source = ENV['LIBRATO_SOURCE'] || ENV['LIBRATO_METRICS_SOURCE']
       self.log_level = ENV['LIBRATO_LOG_LEVEL'] || :info
     end
     
