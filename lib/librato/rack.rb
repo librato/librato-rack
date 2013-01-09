@@ -1,4 +1,9 @@
-module Librato::Rack
+require 'thread'
+require 'librato/metrics'
+
+module Librato
+  module Rack; end
 end
 
-require 'librato/rack/middleware'
+require 'librato/rack/configuration'
+require 'librato/rack/version'
