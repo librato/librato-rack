@@ -17,5 +17,5 @@ Gem::Specification.new do |s|
   s.test_files = Dir["test/**/*"]
 
   s.add_dependency "librato-metrics", "~> 1.0.2"
-  s.add_development_dependency "minitest", '~> 3.4.0'
+  s.add_development_dependency "minitest"
 end
