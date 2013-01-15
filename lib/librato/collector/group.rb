@@ -4,8 +4,8 @@ module Librato
     #
     class Group
 
-      def initialize(prefix)
-        @prefix = "#{prefix}."
+      def initialize(collector, prefix)
+        @collector, @prefix = collector, "#{prefix}."
       end
 
       def group(prefix)
@@ -15,12 +15,12 @@ module Librato
 
       def increment(counter, by=1)
         counter = "#{@prefix}#{counter}"
-        Librato::Rails.increment counter, by
+        @collector.increment counter, by
       end
 
       def measure(event, duration)
         event = "#{@prefix}#{event}"
-        Librato::Rails.measure event, duration
+        @collector.measure event, duration
       end
       alias :timing :measure
 

@@ -25,7 +25,7 @@ module Librato
     end
 
     def group(prefix)
-      group = Group.new(prefix)
+      group = Group.new(self, prefix)
       yield group
     end
 
