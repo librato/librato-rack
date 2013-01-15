@@ -38,7 +38,7 @@ module Librato
     def prefix
       @prefix
     end
-      
+
   end
 end
 

@@ -47,11 +47,11 @@ module Librato::Rack
       #   group.increment 'total'
       #   group.timing    'time', duration
       #   group.increment 'slow' if duration > 200.0
-      # 
+      #
       #   group.group 'status' do |s|
       #     s.increment status
       #     s.increment "#{status.to_s[0]}xx"
-      # 
+      #
       #     s.timing "#{status}.time", duration
       #     s.timing "#{status.to_s[0]}xx.time", duration
       #   end
