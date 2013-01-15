@@ -10,7 +10,7 @@ module Librato
 
       def group(prefix)
         prefix = "#{@prefix}#{prefix}"
-        yield self.class.new(prefix)
+        yield self.class.new(@collector, prefix)
       end
 
       def increment(counter, by=1)
