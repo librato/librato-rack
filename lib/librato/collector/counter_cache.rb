@@ -1,6 +1,8 @@
 module Librato
-  module Rails
-
+  class Collector
+    # maintains storage of a set of incrementable, counter-like
+    # measurements
+    #
     class CounterCache
       DEFAULT_SOURCE = '%%'
 

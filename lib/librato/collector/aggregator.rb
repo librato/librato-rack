@@ -1,5 +1,7 @@
 module Librato
-  module Rails
+  class Collector
+    # maintains storage of timing and measurement type measurements
+    #
     class Aggregator
       extend Forwardable
 

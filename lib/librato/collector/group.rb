@@ -1,5 +1,7 @@
 module Librato
-  module Rails
+  class Collector
+    # abstracts grouping together several similarly named measurements
+    #
     class Group
 
       def initialize(prefix)
