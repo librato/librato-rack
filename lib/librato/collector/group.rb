@@ -18,9 +18,9 @@ module Librato
         @collector.increment counter, by
       end
 
-      def measure(event, duration)
-        event = "#{@prefix}#{event}"
-        @collector.measure event, duration
+      def measure(*args, &block)
+        args[0] = "#{@prefix}#{args[0]}"
+        @collector.measure(*args, &block)
       end
       alias :timing :measure
 

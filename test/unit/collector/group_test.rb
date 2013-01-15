@@ -28,6 +28,16 @@ module Librato
         assert_equal 32.0, collector.aggregate['foo.bam'][:sum]
       end
 
+      def test_timing_block
+        collector = Collector.new
+        collector.group 'foo' do |g|
+          g.timing :bak do
+            sleep 0.01
+          end
+        end
+        assert_in_delta 10.0, collector.aggregate['foo.bak'][:sum], 2
+      end
+
       def test_nesting
         collector = Collector.new
         collector.group 'foo' do |g|
