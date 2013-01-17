@@ -4,7 +4,7 @@ module Librato
     # measurements
     #
     class CounterCache
-      DEFAULT_SOURCE = '%%'
+      SEPARATOR = '%%'
 
       extend Forwardable
 
@@ -13,7 +13,7 @@ module Librato
       def initialize
         @cache = {}
         @lock = Mutex.new
-        @sporadics = {}
+        @sporadics = Set.new
       end
 
       # Retrieve the current value for a given metric. This is a short
@@ -23,9 +23,7 @@ module Librato
       # @param [String|Symbol] key metric name
       # @return [Integer|Float] current value
       def [](key)
-        @lock.synchronize do
-          @cache[key.to_s][DEFAULT_SOURCE]
-        end
+        fetch(key)
       end
 
       # removes all tracked metrics. note this removes all measurement
@@ -37,13 +35,11 @@ module Librato
 
 
       def fetch(key, options={})
-        source = DEFAULT_SOURCE
         if options[:source]
-          source = options[:source].to_s
+          key = "#{key}#{SEPARATOR}#{options[:source]}"
         end
         @lock.synchronize do
-          return nil unless @cache[key.to_s]
-          @cache[key.to_s][source]
+          @cache[key.to_s]
         end
       end
 
@@ -53,16 +49,15 @@ module Librato
         @lock.synchronize do
           # work off of a duplicate data set so we block for
           # as little time as possible
-          counts = Marshal.load(Marshal.dump(@cache))
+          counts = @cache.dup
           reset_cache
         end
-        counts.each do |key, data|
-          data.each do |source, value|
-            if source == DEFAULT_SOURCE
-              queue.add key => value
-            else
-              queue.add key => {:value => value, :source => source}
-            end
+        counts.each do |metric, value|
+          metric, source = metric.split(SEPARATOR)
+          if source
+            queue.add metric => {:value => value, :source => source}
+          else
+            queue.add metric => value
           end
         end
       end
@@ -79,43 +74,37 @@ module Librato
       #   increment :foo, :source => user.id
       #
       def increment(counter, options={})
-        counter = counter.to_s
         if options.is_a?(Fixnum)
           # suppport legacy style
           options = {:by => options}
         end
         by = options[:by] || 1
-        source = DEFAULT_SOURCE
         if options[:source]
-          source = options[:source].to_s
+          metric = "#{counter}#{SEPARATOR}#{options[:source]}"
+        else
+          metric = counter.to_s
         end
         if options[:sporadic]
-          make_sporadic(counter, source)
+          make_sporadic(metric)
         end
         @lock.synchronize do
-          @cache[counter] ||= {}
-          @cache[counter][source] ||= 0
-          @cache[counter][source] += by
+          @cache[metric] ||= 0
+          @cache[metric] += by
         end
       end
 
       private
 
-      def make_sporadic(metric, source)
-        @sporadics[metric] ||= Set.new
-        @sporadics[metric] << source
+      def make_sporadic(metric)
+        @sporadics << metric
       end
 
       def reset_cache
         # remove any source/metric pairs that aren't continuous
-        @sporadics.each do |key, sources|
-          sources.each { |source| @cache[key].delete(source) }
-        end
+        @sporadics.each { |metric| @cache.delete(metric) }
         @sporadics.clear
         # reset all continuous source/metric pairs to 0
-        @cache.each_key do |key|
-          @cache[key].each_key { |source| @cache[key][source] = 0 }
-        end
+        @cache.each_key { |key| @cache[key] = 0 }
       end
 
     end
