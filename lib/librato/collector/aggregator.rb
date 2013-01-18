@@ -35,7 +35,7 @@ module Librato
       end
 
       # transfer all measurements to queue and reset internal status
-      def flush_to(queue, options={})
+      def flush_to(queue)
         queued = nil
         @lock.synchronize do
           return if @cache.empty?
