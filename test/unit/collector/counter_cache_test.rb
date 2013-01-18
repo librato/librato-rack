@@ -4,92 +4,92 @@ module Librato
   class Collector
     class CounterCacheTest < MiniTest::Unit::TestCase
 
-        def test_basic_operations
-          cc = CounterCache.new
-          cc.increment :foo
-          assert_equal 1, cc[:foo]
+      def test_basic_operations
+        cc = CounterCache.new
+        cc.increment :foo
+        assert_equal 1, cc[:foo]
 
-          # accepts optional argument
-          cc.increment :foo, :by => 5
-          assert_equal 6, cc[:foo]
+        # accepts optional argument
+        cc.increment :foo, :by => 5
+        assert_equal 6, cc[:foo]
 
-          # legacy style
-          cc.increment :foo, 2
-          assert_equal 8, cc[:foo]
+        # legacy style
+        cc.increment :foo, 2
+        assert_equal 8, cc[:foo]
 
-          # strings or symbols work
-          cc.increment 'foo'
-          assert_equal 9, cc['foo']
-        end
+        # strings or symbols work
+        cc.increment 'foo'
+        assert_equal 9, cc['foo']
+      end
 
-        def test_custom_sources
-          cc = CounterCache.new
+      def test_custom_sources
+        cc = CounterCache.new
 
-          cc.increment :foo, :source => 'bar'
-          assert_equal 1, cc.fetch(:foo, :source => 'bar')
+        cc.increment :foo, :source => 'bar'
+        assert_equal 1, cc.fetch(:foo, :source => 'bar')
 
-          # symbols also work
-          cc.increment :foo, :source => :baz
-          assert_equal 1, cc.fetch(:foo, :source => :baz)
+        # symbols also work
+        cc.increment :foo, :source => :baz
+        assert_equal 1, cc.fetch(:foo, :source => :baz)
 
-          # strings and symbols are interchangable
-          cc.increment :foo, :source => :bar
-          assert_equal 2, cc.fetch(:foo, :source => 'bar')
+        # strings and symbols are interchangable
+        cc.increment :foo, :source => :bar
+        assert_equal 2, cc.fetch(:foo, :source => 'bar')
 
-          # custom source and custom increment
-          cc.increment :foo, :source => 'boombah', :by => 10
-          assert_equal 10, cc.fetch(:foo, :source => 'boombah')
-        end
+        # custom source and custom increment
+        cc.increment :foo, :source => 'boombah', :by => 10
+        assert_equal 10, cc.fetch(:foo, :source => 'boombah')
+      end
 
-        def test_sporadic
-          cc = CounterCache.new
+      def test_sporadic
+        cc = CounterCache.new
 
-          cc.increment :foo
-          cc.increment :foo, :source => 'bar'
+        cc.increment :foo
+        cc.increment :foo, :source => 'bar'
 
-          cc.increment :baz, :sporadic => true
-          cc.increment :baz, :source => 118, :sporadic => true
-          assert_equal 1, cc[:baz]
-          assert_equal 1, cc.fetch(:baz, :source => 118)
+        cc.increment :baz, :sporadic => true
+        cc.increment :baz, :source => 118, :sporadic => true
+        assert_equal 1, cc[:baz]
+        assert_equal 1, cc.fetch(:baz, :source => 118)
 
-          # persist values once
-          cc.flush_to(Librato::Metrics::Queue.new)
+        # persist values once
+        cc.flush_to(Librato::Metrics::Queue.new)
 
-          # normal values persist
-          assert_equal 0, cc[:foo]
-          assert_equal 0, cc.fetch(:foo, :source => 'bar')
+        # normal values persist
+        assert_equal 0, cc[:foo]
+        assert_equal 0, cc.fetch(:foo, :source => 'bar')
 
-          # sporadic do not
-          assert_equal nil, cc[:baz]
-          assert_equal nil, cc.fetch(:baz, :source => 118)
+        # sporadic do not
+        assert_equal nil, cc[:baz]
+        assert_equal nil, cc.fetch(:baz, :source => 118)
 
-          # add a different sporadic metric
-          cc.increment :bazoom, :sporadic => true
-          assert_equal 1, cc[:bazoom]
+        # add a different sporadic metric
+        cc.increment :bazoom, :sporadic => true
+        assert_equal 1, cc[:bazoom]
 
-          # persist values again
-          cc.flush_to(Librato::Metrics::Queue.new)
-          assert_equal nil, cc[:bazoom]
-        end
+        # persist values again
+        cc.flush_to(Librato::Metrics::Queue.new)
+        assert_equal nil, cc[:bazoom]
+      end
 
-        def test_flushing
-          cc = CounterCache.new
+      def test_flushing
+        cc = CounterCache.new
 
-          cc.increment :foo
-          cc.increment :bar, :by => 2
-          cc.increment :foo, :source => 'foobar'
-          cc.increment :foo, :source => 'foobar', :by => 3
+        cc.increment :foo
+        cc.increment :bar, :by => 2
+        cc.increment :foo, :source => 'foobar'
+        cc.increment :foo, :source => 'foobar', :by => 3
 
-          q = Librato::Metrics::Queue.new
-          cc.flush_to(q)
+        q = Librato::Metrics::Queue.new
+        cc.flush_to(q)
 
-          expected = Set.new [{:name=>"foo", :value=>1},
-                      {:name=>"foo", :value=>4, :source=>"foobar"},
-                      {:name=>"bar", :value=>2}]
-          queued = Set.new(q.gauges)
-          queued.each { |hash| hash.delete(:measure_time) }
-          assert_equal queued, expected
-        end
+        expected = Set.new [{:name=>"foo", :value=>1},
+                    {:name=>"foo", :value=>4, :source=>"foobar"},
+                    {:name=>"bar", :value=>2}]
+        queued = Set.new(q.gauges)
+        queued.each { |hash| hash.delete(:measure_time) }
+        assert_equal queued, expected
+      end
 
     end
   end
