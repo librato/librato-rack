@@ -38,9 +38,19 @@ class RequestTest < MiniTest::Unit::TestCase
       'should track total request time'
 
     # status specific
-    # assert_equal 1, aggregate["rack.request.status.200.time"][:count]
-    # assert_equal 1, aggregate["rack.request.status.2xx.time"][:count]
+    assert_equal 1, aggregate["rack.request.status.200.time"][:count]
+    assert_equal 1, aggregate["rack.request.status.2xx.time"][:count]
   end
+
+  def test_track_exceptions
+    begin
+      get '/exception'
+    rescue RuntimeError => e
+      raise unless e.message == 'exception raised!'
+    end
+    assert_equal 1, counters["rack.request.exceptions"]
+  end
+
 
   private
 
@@ -53,14 +63,6 @@ class RequestTest < MiniTest::Unit::TestCase
   end
 
   #
-  #   test 'track exceptions' do
-  #     begin
-  #       visit exception_path #rescue nil
-  #     rescue RuntimeError => e
-  #       raise unless e.message == 'test exception!'
-  #     end
-  #     assert_equal 1, counters["rails.request.exceptions"]
-  #   end
   #
   #   test 'track slow requests' do
   #     visit slow_path

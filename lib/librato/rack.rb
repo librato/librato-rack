@@ -33,12 +33,17 @@ module Librato
     def call(env)
       # @metrics.check_worker
       record_header_metrics(env)
+      time = Time.now
 
-      time     = Time.now
-      response = @app.call(env)
+      begin
+        response = @app.call(env)
+      rescue Exception => e
+        record_exception(e)
+        raise
+      end
+
       duration = (Time.now - time) * 1000.0
       record_request_metrics(response.first, duration)
-
       response
     end
 
@@ -72,6 +77,10 @@ module Librato
           s.timing "#{status.to_s[0]}xx.time", duration
         end
       end
+    end
+
+    def record_exception(exception)
+      tracker.increment 'rack.request.exceptions'
     end
 
   end
