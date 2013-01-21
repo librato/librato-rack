@@ -10,13 +10,18 @@ class RequestTest < MiniTest::Unit::TestCase
     Rack::Builder.parse_file('test/apps/basic.ru').first
   end
 
-  def test_increment_total
+  def test_increment_total_and_status
     get '/'
     assert last_response.ok?
-
     assert_equal 1, counters["rack.request.total"]
-    # assert_equal 1, counters["rack.request.status.200"]
-    # assert_equal 1, counters["rack.request.status.2xx"]
+    assert_equal 1, counters["rack.request.status.200"]
+    assert_equal 1, counters["rack.request.status.2xx"]
+
+    get '/status/204'
+    assert_equal 2, counters["rack.request.total"]
+    assert_equal 1, counters["rack.request.status.200"]
+    assert_equal 1, counters["rack.request.status.204"]
+    assert_equal 2, counters["rack.request.status.2xx"]
   end
 
   private
@@ -26,12 +31,7 @@ class RequestTest < MiniTest::Unit::TestCase
   end
 
   # def test_increment_status
-  #   get '/status/204'
-  #
-  #   assert_equal 2, counters["rails.request.total"]
-  #   assert_equal 1, counters["rails.request.status.200"]
-  #   assert_equal 1, counters["rails.request.status.204"]
-  #   assert_equal 2, counters["rails.request.status.2xx"]
+
   # end
   #
   #   test 'request times' do
