@@ -2,6 +2,7 @@ source "http://rubygems.org"
 gemspec
 
 # test application
+gem 'rack-test'
 gem 'sinatra'
 
 # mocks
