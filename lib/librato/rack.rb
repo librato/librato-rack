@@ -33,21 +33,24 @@ module Librato
     def call(env)
       # @metrics.check_worker
       record_header_metrics(env)
-      time = Time.now
+      response, duration = process_request(env)
+      record_request_metrics(response.first, duration)
+      response
+    end
 
+    private
+
+    def process_request(env)
+      time = Time.now
       begin
         response = @app.call(env)
       rescue Exception => e
         record_exception(e)
         raise
       end
-
       duration = (Time.now - time) * 1000.0
-      record_request_metrics(response.first, duration)
-      response
+      [response, duration]
     end
-
-    private
 
     def tracker
       @tracker ||= @config[:tracker] || DEFAULT_TRACKER
@@ -67,7 +70,7 @@ module Librato
       tracker.group 'rack.request' do |group|
         group.increment 'total'
         group.timing    'time', duration
-        # group.increment 'slow' if duration > 200.0
+        group.increment 'slow' if duration > 200.0
 
         group.group 'status' do |s|
           s.increment status

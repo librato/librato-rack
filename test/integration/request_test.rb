@@ -51,6 +51,10 @@ class RequestTest < MiniTest::Unit::TestCase
     assert_equal 1, counters["rack.request.exceptions"]
   end
 
+  def test_track_slow_requests
+    get '/slow'
+    assert_equal 1, counters["rack.request.slow"]
+  end
 
   private
 
@@ -61,12 +65,5 @@ class RequestTest < MiniTest::Unit::TestCase
   def counters
     Librato.collector.counters
   end
-
-  #
-  #
-  #   test 'track slow requests' do
-  #     visit slow_path
-  #     assert_equal 1, counters["rails.request.slow"]
-  #   end
 
 end
