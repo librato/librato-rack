@@ -67,4 +67,6 @@ end
 
 require 'librato/collector'
 require 'librato/rack/configuration'
+require 'librato/rack/errors'
+require 'librato/rack/logger'
 require 'librato/rack/version'
