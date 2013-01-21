@@ -61,7 +61,7 @@ module Librato
     def record_request_metrics(status, duration)
       tracker.group 'rack.request' do |group|
         group.increment 'total'
-        # group.timing    'time', duration
+        group.timing    'time', duration
         # group.increment 'slow' if duration > 200.0
 
         group.group 'status' do |s|

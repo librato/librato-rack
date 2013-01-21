@@ -23,6 +23,7 @@ module Librato
       aggregate.delete_all
       counters.delete_all
     end
+    alias :clear :delete_all
 
     def group(prefix)
       group = Group.new(self, prefix)
