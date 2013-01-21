@@ -10,12 +10,6 @@ module Librato
         @interrupt = false
       end
 
-      # do the assigned work, catching some special cases
-      #
-      def execute(obj)
-        obj.call
-      end
-
       # run the given block every <period> seconds, looping
       # infinitely unless @interrupt becomes true.
       #
@@ -24,7 +18,7 @@ module Librato
         until @interrupt do
           now = Time.now
           if now >= next_run
-            execute(block) # runs given block
+            block.call
             while next_run <= now
               next_run += period
             end
