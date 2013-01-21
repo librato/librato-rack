@@ -12,6 +12,7 @@ module Librato
 
       def initialize(logger)
         self.logger = logger
+        self.prefix = '[librato-rack] '
       end
 
       # ex: log :debug, 'this is a debug message'
@@ -23,7 +24,7 @@ module Librato
         else
           method = :info
         end
-        message = '[librato-rails] ' << message
+        message = prefix + message
         logger.send(method, message)
       end
 

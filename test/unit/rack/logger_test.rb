@@ -43,6 +43,14 @@ module Librato
         assert_equal 2, buffer_lines.length, 'should not have added a line'
       end
 
+      def test_log_prefix
+        assert_equal '[librato-rack] ', @logger.prefix
+
+        @logger.prefix = '[test prefix] '
+        @logger.log :error, 'an error message'
+        assert buffer_lines[0].index('[test prefix] '), 'should use prefix'
+      end
+
       private
 
       def buffer_lines
