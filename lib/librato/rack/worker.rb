@@ -1,8 +1,9 @@
 module Librato
-  module Rails
-
-    # This class manages the background thread which submits all data
-    # to the Librato Metrics service.
+  class Rack
+    # Runs a given piece of code periodically, ensuring that
+    # it will be run again at the proper interval regardless
+    # of how long execution takes.
+    #
     class Worker
 
       def initialize
