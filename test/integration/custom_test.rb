@@ -40,9 +40,11 @@ class CustomTest < MiniTest::Unit::TestCase
     assert_in_delta 10, aggregate['sleeper'][:sum], 10
   end
 
-  # def test_grouping
-  #
-  # end
+  def test_grouping
+    get '/group'
+    assert_equal 1, counters['did.a.thing']
+    assert_equal 1, aggregate['did.a.timing'][:count]
+  end
 
   private
 

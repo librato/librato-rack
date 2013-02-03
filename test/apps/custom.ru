@@ -15,6 +15,11 @@ def application(env)
     Librato.timing 'sleeper' do
       sleep 0.01
     end
+  when '/group'
+    Librato.group 'did.a' do |g|
+      g.increment 'thing'
+      g.timing 'timing', 2.3
+    end
   end
   [200, {"Content-Type" => 'text/html'}, ["Hello!"]]
 end
