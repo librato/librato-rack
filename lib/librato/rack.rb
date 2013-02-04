@@ -24,9 +24,9 @@ module Librato
   #   end
   #
   class Rack
-    DEFAULT_TRACKER = Librato
+    attr_reader :config
 
-    def initialize(app, config = {})
+    def initialize(app, config = Librato::Rack::Configuration.new)
       @app, @config = app, config
     end
 
@@ -50,10 +50,6 @@ module Librato
       end
       duration = (Time.now - time) * 1000.0
       [response, duration]
-    end
-
-    def tracker
-      @tracker ||= @config[:tracker] || DEFAULT_TRACKER
     end
 
     def record_header_metrics(env)
@@ -86,6 +82,10 @@ module Librato
 
     def record_exception(exception)
       tracker.increment 'rack.request.exceptions'
+    end
+
+    def tracker
+      config.tracker
     end
 
   end
