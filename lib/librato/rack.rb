@@ -3,10 +3,10 @@ require 'librato/metrics'
 
 module Librato
   extend SingleForwardable
-  def_delegators :collector, :increment, :measure, :timing, :group
+  def_delegators :tracker, :increment, :measure, :timing, :group
 
-  def self.collector
-    @collector ||= Librato::Collector.new
+  def self.tracker
+    @tracker ||= Librato::Rack::Tracker.new
   end
 end
 
@@ -95,6 +95,7 @@ require 'librato/collector'
 require 'librato/rack/configuration'
 require 'librato/rack/errors'
 require 'librato/rack/logger'
-require 'librato/rack/worker'
+require 'librato/rack/tracker'
 require 'librato/rack/validating_queue'
 require 'librato/rack/version'
+require 'librato/rack/worker'

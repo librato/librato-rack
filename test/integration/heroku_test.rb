@@ -26,11 +26,11 @@ class HerokuTest < MiniTest::Unit::TestCase
   private
 
   def aggregate
-    Librato.collector.aggregate
+    Librato.tracker.collector.aggregate
   end
 
   def counters
-    Librato.collector.counters
+    Librato.tracker.collector.counters
   end
 
 end
