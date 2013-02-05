@@ -51,6 +51,27 @@ module Librato
         assert !config.explicit_source?, 'source should no long be explicit when reset'
       end
 
+      def test_prefix_change_notification
+        config = Configuration.new
+        listener = listener_object
+        config.register_listener(listener)
+        config.prefix = 'newfoo'
+        assert_equal 'newfoo', listener.prefix
+      end
+
+      private
+
+      def listener_object
+        listener = Object.new
+        def listener.prefix=(prefix)
+          @prefix = prefix
+        end
+        def listener.prefix
+          @prefix
+        end
+        listener
+      end
+
     end
   end
 end

@@ -10,8 +10,9 @@ module Librato
     #   config.token = 'mytoken'
     #
     class Configuration
-      attr_accessor :user, :token, :api_endpoint, :prefix, :tracker,
+      attr_accessor :user, :token, :api_endpoint, :tracker,
                     :source_pids, :log_level, :flush_interval
+      attr_reader :prefix, :source
 
       def initialize
         # set up defaults
@@ -19,6 +20,7 @@ module Librato
         self.api_endpoint = Librato::Metrics.api_endpoint
         self.flush_interval = 60
         self.source_pids = false
+        @listeners = []
 
         # check environment
         self.user = ENV['LIBRATO_USER'] || ENV['LIBRATO_METRICS_USER']
@@ -32,8 +34,13 @@ module Librato
         !!@explicit_source
       end
 
-      def source
-        @source
+      def prefix=(prefix)
+        @prefix = prefix
+        @listeners.each { |l| l.prefix = prefix }
+      end
+
+      def register_listener(listener)
+        @listeners << listener
       end
 
       def source=(src)

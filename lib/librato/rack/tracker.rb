@@ -11,6 +11,8 @@ module Librato
 
       def initialize(config)
         @config = config
+        collector.prefix = config.prefix
+        config.register_listener(collector)
       end
 
       # # if this process isn't running a worker yet, start it up!
