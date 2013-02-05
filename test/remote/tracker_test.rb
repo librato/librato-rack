@@ -1,3 +1,4 @@
+# # encoding: UTF-8
 require 'test_helper'
 require 'rack/test'
 
@@ -114,59 +115,49 @@ class TrackerRemoteTest < MiniTest::Unit::TestCase
       assert_equal 4, mycount[source][0]['value']
     end
 
-  #     test 'flush recovers from failed flush' do
-  #       client = Librato::Rails.client
-  #       source = Librato::Rails.qualified_source
-  #
-  #       # create a metric foo of counter type
-  #       client.submit :foo => {:type => :counter, :value => 12}
-  #
-  #       # failing flush - submit a foo measurement as a gauge (type mismatch)
-  #       Librato::Rails.measure :foo, 2.12
-  #       Librato::Rails.flush
-  #
-  #       foo = client.fetch :foo, :count => 10
-  #       assert_equal 1, foo['unassigned'].length
-  #       assert_nil foo[source] # shouldn't have been accepted
-  #
-  #       Librato::Rails.measure :boo, 2.12
-  #       Librato::Rails.flush
-  #
-  #       boo = client.fetch :boo, :count => 10
-  #       assert_equal 2.12, boo[source][0]["value"]
-  #     end
-  #
-  #     test 'flush tolerates invalid metric names' do
-  #       client = Librato::Rails.client
-  #       source = Librato::Rails.qualified_source
-  #
-  #       Librato::Rails.increment :foo
-  #       Librato::Rails.increment 'fübar'
-  #       Librato::Rails.measure 'fu/bar/baz', 12.1
-  #       Librato::Rails.flush
-  #
-  #       metric_names = client.list.map { |m| m['name'] }
-  #       assert metric_names.include?('foo')
-  #
-  #       # should have saved values for foo even though
-  #       # other metrics had invalid names
-  #       foo = client.fetch :foo, :count => 5
-  #       assert_equal 1.0, foo[source][0]["value"]
-  #     end
-  #
-  #     test 'flush tolerates invalid source names' do
-  #       client = Librato::Rails.client
-  #
-  #       Librato::Rails.increment :foo, :source => 'atreides'
-  #       Librato::Rails.increment :bar, :source => 'glébnöst'
-  #       Librato::Rails.measure 'baz', 2.25, :source => 'b/l/ak/nok'
-  #       Librato::Rails.flush
-  #
-  #       # should have saved values for foo even though
-  #       # other metrics had invalid sources
-  #       foo = client.fetch :foo, :count => 5
-  #       assert_equal 1.0, foo['atreides'][0]["value"]
-  #     end
+    def test_flush_recovers_from_failure
+      # create a metric foo of counter type
+      client.submit :foo => {:type => :counter, :value => 12}
+
+      # failing flush - submit a foo measurement as a gauge (type mismatch)
+      tracker.measure :foo, 2.12
+      tracker.flush
+
+      foo = client.fetch :foo, :count => 10
+      assert_equal 1, foo['unassigned'].length
+      assert_nil foo[source] # shouldn't have been accepted
+
+      tracker.measure :boo, 2.12
+      tracker.flush
+
+      boo = client.fetch :boo, :count => 10
+      assert_equal 2.12, boo[source][0]["value"]
+    end
+
+    def test_flush_handles_invalid_metric_names
+      tracker.increment :foo              # valid
+      tracker.increment 'fübar'           # invalid
+      tracker.measure 'fu/bar/baz', 12.1  # invalid
+      tracker.flush
+
+      metric_names = client.list.map { |m| m['name'] }
+      assert metric_names.include?('foo')
+
+      # should have saved values for foo
+      foo = client.fetch :foo, :count => 5
+      assert_equal 1.0, foo[source][0]["value"]
+    end
+
+    def test_flush_handles_invalid_sources_names
+      tracker.increment :foo, :source => 'atreides'         # valid
+      tracker.increment :bar, :source => 'glébnöst'         # invalid
+      tracker.measure 'baz', 2.25, :source => 'b/l/ak/nok'  # invalid
+      tracker.flush
+
+      # should have saved values for foo
+      foo = client.fetch :foo, :count => 5
+      assert_equal 1.0, foo['atreides'][0]["value"]
+    end
 
     private
 
@@ -196,6 +187,7 @@ class TrackerRemoteTest < MiniTest::Unit::TestCase
     end
 
   else
+    # ENV vars not set
     puts "Skipping remote tests..."
   end
 
