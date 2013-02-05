@@ -87,19 +87,19 @@ class TrackerRemoteTest < MiniTest::Unit::TestCase
       assert_in_delta 5, jobs['worker.3'][0]['sum'], 0.1
     end
 
-  #     test 'flush should purge measures/timings' do
-  #       Librato::Rails.timing  'request.time.total', 122.1
-  #       Librato::Rails.measure 'items_bought', 20
-  #       Librato::Rails.flush
-  #
-  #       assert Librato::Rails.aggregate.empty?, 'measures and timings should be cleared with flush'
-  #     end
-  #
-  #     test 'empty flush should not be sent' do
-  #       Librato::Rails.flush
-  #       assert_equal [], Librato::Rails.client.list
-  #     end
-  #
+    def test_flush_should_purge_measures_and_timings
+      tracker.timing  'request.time.total', 122.1
+      tracker.measure 'items_bought', 20
+      tracker.flush
+
+      assert collector.aggregate.empty?, 'measures and timings should be cleared with flush'
+    end
+
+    def test_empty_flush_should_not_be_sent
+      tracker.flush
+      assert_equal [], client.list
+    end
+
   #     test 'flush respects prefix' do
   #       source = Librato::Rails.qualified_source
   #       Librato::Rails.prefix = 'testyprefix'
