@@ -59,16 +59,6 @@ module Librato
         end
       end
 
-      # access to client instance
-      def client
-        @client ||= prepare_client
-      end
-
-      # collector instance which is tracking all measurement additions
-      def collector
-        @collector ||= Collector.new
-      end
-
       # send all current data to Metrics
       def flush
         log :debug, "flushing pid #{@pid} (#{Time.now}).."
@@ -82,11 +72,6 @@ module Librato
         log :trace, "flushed pid #{@pid} in #{(Time.now - start)*1000.to_f}ms"
       rescue Exception => error
         log :error, "submission failed permanently: #{error}"
-      end
-
-      # source including process pid
-      def qualified_source
-        self.source_pids ? "#{source}.#{$$}" : source
       end
 
       # run once during Rails startup sequence
@@ -152,10 +137,6 @@ module Librato
           :source => qualified_source,
           :prefix => self.prefix,
           :skip_measurement_times => true )
-      end
-
-      def forking_server?
-        FORKING_SERVERS.include?(app_server)
       end
 
       def on_heroku
