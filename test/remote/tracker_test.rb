@@ -96,24 +96,23 @@ class TrackerRemoteTest < MiniTest::Unit::TestCase
       assert_equal [], client.list
     end
 
-    # def test_flush_respects_prefix
-    #   Librato::Rails.prefix = 'testyprefix'
-    #
-    #   Librato::Rails.timing 'mytime', 221.1
-    #   Librato::Rails.increment 'mycount', 4
-    #   Librato::Rails.flush
-    #
-    #   client = Librato::Rails.client
-    #   metric_names = client.list.map { |m| m['name'] }
-    #   assert metric_names.include?('testyprefix.mytime'), 'testyprefix.mytime should be present'
-    #   assert metric_names.include?('testyprefix.mycount'), 'testyprefix.mycount should be present'
-    #
-    #   mytime = client.fetch 'testyprefix.mytime', :count => 10
-    #   assert_equal 1, mytime[source][0]['count']
-    #
-    #   mycount = client.fetch 'testyprefix.mycount', :count => 10
-    #   assert_equal 4, mycount[source][0]['value']
-    # end
+    def test_flush_respects_prefix
+      config.prefix = 'testyprefix'
+
+      tracker.timing 'mytime', 221.1
+      tracker.increment 'mycount', 4
+      tracker.flush
+
+      metric_names = client.list.map { |m| m['name'] }
+      assert metric_names.include?('testyprefix.mytime'), 'testyprefix.mytime should be present'
+      assert metric_names.include?('testyprefix.mycount'), 'testyprefix.mycount should be present'
+
+      mytime = client.fetch 'testyprefix.mytime', :count => 10
+      assert_equal 1, mytime[source][0]['count']
+
+      mycount = client.fetch 'testyprefix.mycount', :count => 10
+      assert_equal 4, mycount[source][0]['value']
+    end
 
   #     test 'flush recovers from failed flush' do
   #       client = Librato::Rails.client
@@ -181,6 +180,10 @@ class TrackerRemoteTest < MiniTest::Unit::TestCase
 
     def collector
       @tracker.collector
+    end
+
+    def config
+      @tracker.config
     end
 
     def source
