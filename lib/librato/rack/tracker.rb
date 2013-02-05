@@ -1,3 +1,5 @@
+require 'socket'
+
 module Librato
   class Rack
     class Tracker
@@ -7,7 +9,7 @@ module Librato
 
       attr_reader :config
 
-      def initialize(config = Configuration.new)
+      def initialize(config)
         @config = config
       end
 
@@ -26,21 +28,25 @@ module Librato
         @collector ||= Librato::Collector.new
       end
 
-      # # send all current data to Metrics
-      # def flush
-      #   log :debug, "flushing pid #{@pid} (#{Time.now}).."
-      #   start = Time.now
-      #   queue = flush_queue
-      #   # thread safety is handled internally for both stores
-      #   counters.flush_to(queue)
-      #   aggregate.flush_to(queue)
-      #   # trace_queued(queue.queued) if should_log?(:trace)
-      #   queue.submit unless queue.empty?
-      #   log :trace, "flushed pid #{@pid} in #{(Time.now - start)*1000.to_f}ms"
-      # rescue Exception => error
-      #   log :error, "submission failed permanently: #{error}"
-      # end
-      #
+      # send all current data to Metrics
+      def flush
+        #log :debug, "flushing pid #{@pid} (#{Time.now}).."
+        start = Time.now
+        # thread safety is handled internally for stores
+        queue = build_flush_queue(collector)
+        # counters.flush_to(queue)
+        # aggregate.flush_to(queue)
+        queue.submit unless queue.empty?
+        #log :trace, "flushed pid #{@pid} in #{(Time.now - start)*1000.to_f}ms"
+      rescue Exception => error
+        #log :error, "submission failed permanently: #{error}"
+      end
+
+      # source including process pid if indicated
+      def qualified_source
+        config.source_pids ? "#{source}.#{$$}" : source
+      end
+
       # # run once during Rails startup sequence
       # def setup(app)
       #   check_config
@@ -72,39 +78,41 @@ module Librato
       #   end
       # end
       #
-      # private
-      #
-      # # access to client instance
-      # def client
-      #   @client ||= prepare_client
-      # end
-      #
-      # def flush_queue
-      #   ValidatingQueue.new(
-      #     :client => client,
-      #     :source => qualified_source,
-      #     :prefix => self.prefix,
-      #     :skip_measurement_times => true )
-      # end
-      #
+      private
+
+      # access to client instance
+      def client
+        @client ||= prepare_client
+      end
+
+      def build_flush_queue(collector)
+        queue = ValidatingQueue.new( :client => client, :source => qualified_source,
+          :prefix => config.prefix, :skip_measurement_times => true )
+        [collector.counters, collector.aggregate].each do |cache|
+          cache.flush_to(queue)
+        end
+        # trace_queued(queue.queued) if should_log?(:trace)
+        queue
+      end
+
       # def log(level, msg)
       #   # TODO
       # end
-      #
-      # def prepare_client
-      #   #check_config
-      #   client = Librato::Metrics::Client.new
-      #   client.authenticate user, token
-      #   client.api_endpoint = @api_endpoint if @api_endpoint
-      #   client.custom_user_agent = user_agent
-      #   client
-      # end
-      #
-      # def ruby_engine
-      #   return RUBY_ENGINE if Object.constants.include?(:RUBY_ENGINE)
-      #   RUBY_DESCRIPTION.split[0]
-      # end
-      #
+
+      def prepare_client
+        #check_config
+        client = Librato::Metrics::Client.new
+        client.authenticate config.user, config.token
+        client.api_endpoint = config.api_endpoint
+        client.custom_user_agent = user_agent
+        client
+      end
+
+      def ruby_engine
+        return RUBY_ENGINE if Object.constants.include?(:RUBY_ENGINE)
+        RUBY_DESCRIPTION.split[0]
+      end
+
       # def should_start?
       #   if !self.user || !self.token
       #     # don't show this unless we're debugging, expected behavior
@@ -120,13 +128,17 @@ module Librato
       #     true
       #   end
       # end
-      #
-      # def user_agent
-      #   ua_chunks = []
-      #   ua_chunks << "librato-rails/#{Librato::Rails::VERSION}"
-      #   ua_chunks << "(#{ruby_engine}; #{RUBY_VERSION}p#{RUBY_PATCHLEVEL}; #{RUBY_PLATFORM}; #{app_server})"
-      #   ua_chunks.join(' ')
-      # end
+
+      def source
+        @source ||= (config.source || Socket.gethostname).downcase
+      end
+
+      def user_agent
+        ua_chunks = []
+        ua_chunks << "librato-rack/#{Librato::Rack::VERSION}"
+        ua_chunks << "(#{ruby_engine}; #{RUBY_VERSION}p#{RUBY_PATCHLEVEL}; #{RUBY_PLATFORM})"
+        ua_chunks.join(' ')
+      end
 
     end
   end
