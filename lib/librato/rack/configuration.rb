@@ -15,7 +15,7 @@ module Librato
 
       def initialize
         # set up defaults
-        self.tracker = Librato.tracker
+        self.tracker = nil
         self.api_endpoint = Librato::Metrics.api_endpoint
         self.flush_interval = 60
         self.source_pids = false

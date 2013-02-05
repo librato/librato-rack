@@ -5,6 +5,10 @@ module Librato
   extend SingleForwardable
   def_delegators :tracker, :increment, :measure, :timing, :group
 
+  def self.register_tracker(tracker)
+    @tracker = tracker
+  end
+
   def self.tracker
     @tracker ||= Librato::Rack::Tracker.new
   end
@@ -24,10 +28,12 @@ module Librato
   #   end
   #
   class Rack
-    attr_reader :config
+    attr_reader :config, :tracker
 
-    def initialize(app, config = Librato::Rack::Configuration.new)
+    def initialize(app, config = Configuration.new)
       @app, @config = app, config
+      @tracker = Tracker.new(@config)
+      Librato.register_tracker(@tracker) # create global reference
     end
 
     def call(env)
@@ -82,10 +88,6 @@ module Librato
 
     def record_exception(exception)
       tracker.increment 'rack.request.exceptions'
-    end
-
-    def tracker
-      config.tracker
     end
 
   end
