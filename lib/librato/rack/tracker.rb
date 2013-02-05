@@ -34,8 +34,6 @@ module Librato
         start = Time.now
         # thread safety is handled internally for stores
         queue = build_flush_queue(collector)
-        # counters.flush_to(queue)
-        # aggregate.flush_to(queue)
         queue.submit unless queue.empty?
         #log :trace, "flushed pid #{@pid} in #{(Time.now - start)*1000.to_f}ms"
       rescue Exception => error
