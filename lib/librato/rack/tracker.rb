@@ -22,11 +22,12 @@ module Librato
       def check_worker
         return if @worker # already running
         return if !should_start?
+        log :info, "config: #{config.dump}"
         @pid = $$
         log :info, ">> starting up worker for pid #{@pid}..."
         @worker = Thread.new do
           worker = Worker.new
-          worker.run_periodically(self.flush_interval) do
+          worker.run_periodically(config.flush_interval) do
             flush
           end
         end
@@ -67,13 +68,19 @@ module Librato
         [collector.counters, collector.aggregate].each do |cache|
           cache.flush_to(queue)
         end
-        # trace_queued(queue.queued) if should_log?(:trace)
+        trace_queued(queue.queued) #if should_log?(:trace)
         queue
+      end
+
+      # trace metrics being sent
+      def trace_queued(queued)
+        require 'pp'
+        log :trace, "Queued: " + queued.pretty_inspect
       end
 
       def log(level, msg)
         @logger ||= Logger.new(config.log_target)
-        #@logger.log_level
+        @logger.log_level = config.log_level
         @logger.log level, msg
       end
 
