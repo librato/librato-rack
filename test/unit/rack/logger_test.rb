@@ -7,8 +7,8 @@ module Librato
 
       def setup
         @buffer = StringIO.new
-        log_object = ::Logger.new(@buffer) # stdlib logger
-        @logger = Logger.new(log_object) # rack logger
+        #log_object = ::Logger.new(@buffer) # stdlib logger
+        @logger = Logger.new(@buffer) # rack logger
       end
 
       def test_log_levels

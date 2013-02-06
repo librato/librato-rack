@@ -19,13 +19,14 @@ module Librato
       def log(level, message)
         return unless should_log?(level)
         message = prefix + message
-        if logger.respond_to?(:puts) # io obj
-          logger.puts(message)
-        elsif logger.respond_to?(:error) # logger obj
-          log_to_logger(level, message)
-        else
-          raise "invalid logger object"
-        end
+        logger.puts(message)
+        # if logger.respond_to?(:puts) # io obj
+        #   logger.puts(message)
+        # elsif logger.respond_to?(:error) # logger obj
+        #   log_to_logger(level, message)
+        # else
+        #   raise "invalid logger object"
+        # end
       end
 
       # set log level to any of LOG_LEVELS
@@ -45,17 +46,17 @@ module Librato
 
       private
 
-      # write message to an ruby stdlib logger object or another class with
-      # similar interface, respecting log levels when we can map them
-      def log_to_logger(level, message)
-        case level
-        when :error, :warn
-          method = level
-        else
-          method = :info
-        end
-        logger.send(method, message)
-      end
+      # # write message to an ruby stdlib logger object or another class with
+      # # similar interface, respecting log levels when we can map them
+      # def log_to_logger(level, message)
+      #   case level
+      #   when :error, :warn
+      #     method = level
+      #   else
+      #     method = :info
+      #   end
+      #   logger.send(method, message)
+      # end
 
       # def logger
       #   @logger ||= if on_heroku
