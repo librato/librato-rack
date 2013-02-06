@@ -6,6 +6,7 @@ module Librato
       extend Forwardable
 
       def_delegators :collector, :increment, :measure, :timing, :group
+      def_delegators :logger, :log
 
       attr_reader :config
 
@@ -75,13 +76,14 @@ module Librato
       # trace metrics being sent
       def trace_queued(queued)
         require 'pp'
-        log :trace, "Queued: " + queued.pretty_inspect
+        log(:trace) { "Queued: " + queued.pretty_inspect }
       end
 
-      def log(level, msg)
-        @logger ||= Logger.new(config.log_target)
+      def logger
+        return @logger if @logger
+        @logger = Logger.new(config.log_target)
         @logger.log_level = config.log_level
-        @logger.log level, msg
+        @logger
       end
 
       def prepare_client
