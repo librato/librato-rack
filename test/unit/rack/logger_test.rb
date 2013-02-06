@@ -28,8 +28,6 @@ module Librato
 
         # logging at log level
         @logger.log :info, 'a log message'
-        @buffer.rewind
-        lines = @buffer.readlines
         assert_equal 1, buffer_lines.length, 'should have added a line'
         assert buffer_lines[0].index('a log message'), 'should log message'
 
@@ -41,6 +39,15 @@ module Librato
         # logging below level
         @logger.log :debug, 'a debug message'
         assert_equal 2, buffer_lines.length, 'should not have added a line'
+      end
+
+      def test_block_logging
+        @logger.log_level = :info
+
+        # logging at log level
+        @logger.log(:info) { "log statement" }
+        assert_equal 1, buffer_lines.length, 'should have added a line'
+        assert buffer_lines[0].index('log statement'), 'should log message'
       end
 
       def test_log_prefix

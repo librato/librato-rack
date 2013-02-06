@@ -15,10 +15,15 @@ module Librato
         self.prefix = '[librato-rack] '
       end
 
-      # ex: log :debug, 'this is a debug message'
-      def log(level, message)
+      # @example Simple logging
+      #   log :debug, 'this is a debug message'
+      #
+      # @example Block logging - not executed if won't be logged
+      #   log(:debug) { "found #{thingy} at #{place}" }
+      #
+      def log(level, message=nil, &block)
         return unless should_log?(level)
-        message = prefix + message
+        message = prefix + (message || block.call)
         logger.puts(message)
         # if logger.respond_to?(:puts) # io obj
         #   logger.puts(message)
