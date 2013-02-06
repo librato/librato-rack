@@ -48,6 +48,14 @@ module Librato
         @explicit_source = !!@source
       end
 
+      def dump
+        fields = {}
+        %w{user token log_level source prefix flush_interval source_pids}.each do |field|
+          fields[field.to_sym] = self.send(field)
+        end
+        fields
+      end
+
     end
   end
 end
