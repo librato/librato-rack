@@ -37,7 +37,8 @@ module Librato
     end
 
     def call(env)
-      # @metrics.check_worker
+      check_log_output(env)
+      @tracker.check_worker
       record_header_metrics(env)
       response, duration = process_request(env)
       record_request_metrics(response.first, duration)
@@ -45,6 +46,12 @@ module Librato
     end
 
     private
+
+    def check_log_output(env)
+      return if @log_target
+      config.log_target ||= env['rack.errors'] || ::Logger.new($stderr)
+      @log_target = config.log_target
+    end
 
     def process_request(env)
       time = Time.now
