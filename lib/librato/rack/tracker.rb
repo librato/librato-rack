@@ -15,15 +15,22 @@ module Librato
         config.register_listener(collector)
       end
 
-      # # if this process isn't running a worker yet, start it up!
-      # # for forking servers this may happen a while after the server
-      # # is restarted for some processes, generally when they serve
-      # # their first request
-      # def check_worker
-      #   if @pid != $$
-      #     start_worker
-      #   end
-      # end
+      # start worker thread, one per process.
+      # if this process has been forked from an one with an active
+      # worker thread we don't need to worry about cleanup, the worker
+      # thread will not pass with the fork
+      def check_worker
+        return if @worker # already running
+        return if !should_start?
+        @pid = $$
+        log :info, ">> starting up worker for pid #{@pid}..."
+        @worker = Thread.new do
+          worker = Worker.new
+          worker.run_periodically(self.flush_interval) do
+            flush
+          end
+        end
+      end
 
       # primary collector object used by this tracker
       def collector
@@ -47,37 +54,6 @@ module Librato
         config.source_pids ? "#{source}.#{$$}" : source
       end
 
-      # # run once during Rails startup sequence
-      # def setup(app)
-      #   check_config
-      #   trace_settings if should_log?(:debug)
-      #   return unless should_start?
-      #   if app_server == :other
-      #     log :info, "starting up..."
-      #   else
-      #     log :info, "starting up with #{app_server}..."
-      #   end
-      #   @pid = $$
-      #   app.middleware.use Librato::Rack::Middleware
-      #   start_worker unless forking_server?
-      # end
-      #
-      # # start the worker thread, one is needed per process.
-      # # if this process has been forked from an one with an active
-      # # worker thread we don't need to worry about cleanup as only
-      # # the forking thread is copied.
-      # def start_worker
-      #   return if @worker # already running
-      #   @pid = $$
-      #   log :debug, ">> starting up worker for pid #{@pid}..."
-      #   @worker = Thread.new do
-      #     worker = Worker.new
-      #     worker.run_periodically(self.flush_interval) do
-      #       flush
-      #     end
-      #   end
-      # end
-      #
       private
 
       # access to client instance
@@ -95,12 +71,13 @@ module Librato
         queue
       end
 
-      # def log(level, msg)
-      #   # TODO
-      # end
+      def log(level, msg)
+        @logger ||= Logger.new(config.log_target)
+        #@logger.log_level
+        @logger.log level, msg
+      end
 
       def prepare_client
-        #check_config
         client = Librato::Metrics::Client.new
         client.authenticate config.user, config.token
         client.api_endpoint = config.api_endpoint
@@ -113,21 +90,21 @@ module Librato
         RUBY_DESCRIPTION.split[0]
       end
 
-      # def should_start?
-      #   if !self.user || !self.token
-      #     # don't show this unless we're debugging, expected behavior
-      #     log :debug, 'halting: credentials not present.'
-      #     false
-      #   elsif qualified_source !~ SOURCE_REGEX
-      #     log :warn, "halting: '#{qualified_source}' is an invalid source name."
-      #     false
-      #   elsif !explicit_source && on_heroku
-      #     log :warn, 'halting: source must be provided in configuration.'
-      #     false
-      #   else
-      #     true
-      #   end
-      # end
+      def should_start?
+        if !config.user || !config.token
+          # don't show this unless we're debugging, expected behavior
+          #log :debug, 'halting: credentials not present.'
+          false
+        # elsif qualified_source !~ SOURCE_REGEX
+        #   log :warn, "halting: '#{qualified_source}' is an invalid source name."
+        #   false
+        # elsif !explicit_source && on_heroku
+        #   log :warn, 'halting: source must be provided in configuration.'
+        #   false
+        else
+          true
+        end
+      end
 
       def source
         @source ||= (config.source || Socket.gethostname).downcase
