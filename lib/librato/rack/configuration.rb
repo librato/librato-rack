@@ -10,8 +10,8 @@ module Librato
     #   config.token = 'mytoken'
     #
     class Configuration
-      attr_accessor :user, :token, :api_endpoint, :tracker,
-                    :source_pids, :log_level, :flush_interval
+      attr_accessor :user, :token, :api_endpoint, :tracker, :source_pids, :log_level,
+                    :flush_interval, :log_target
       attr_reader :prefix, :source
 
       def initialize
