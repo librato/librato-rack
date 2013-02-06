@@ -77,31 +77,6 @@ module Librato
         LOG_LEVELS.index(self.log_level) >= LOG_LEVELS.index(level)
       end
 
-      # # trace current environment
-      # def trace_environment
-      #   log :info, "Environment: " + ENV.pretty_inspect
-      # end
-      #
-      # # trace metrics being sent
-      # def trace_queued(queued)
-      #   log :trace, "Queued: " + queued.pretty_inspect
-      # end
-      #
-      # def trace_settings
-      #   settings = {
-      #     :user => self.user,
-      #     :token => self.token,
-      #     :source => source,
-      #     :explicit_source => self.explicit_source ? 'true' : 'false',
-      #     :source_pids => self.source_pids ? 'true' : 'false',
-      #     :qualified_source => qualified_source,
-      #     :log_level => log_level,
-      #     :prefix => prefix,
-      #     :flush_interval => self.flush_interval
-      #   }
-      #   log :info, 'Settings: ' + settings.pretty_inspect
-      # end
-
     end
   end
 end
