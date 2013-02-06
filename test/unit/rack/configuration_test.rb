@@ -4,14 +4,12 @@ module Librato
   class Rack
     class ConfigurationTest < MiniTest::Unit::TestCase
 
+      def setup
+        clear_env_vars
+      end
+
       def teardown
-        ENV.delete('LIBRATO_USER')
-        ENV.delete('LIBRATO_TOKEN')
-        ENV.delete('LIBRATO_SOURCE')
-        # legacy
-        ENV.delete('LIBRATO_METRICS_USER')
-        ENV.delete('LIBRATO_METRICS_TOKEN')
-        ENV.delete('LIBRATO_METRICS_SOURCE')
+        clear_env_vars
       end
 
       def test_defaults
@@ -60,6 +58,17 @@ module Librato
       end
 
       private
+
+      def clear_env_vars
+        ENV.delete('LIBRATO_USER')
+        ENV.delete('LIBRATO_TOKEN')
+        ENV.delete('LIBRATO_SOURCE')
+        ENV.delete('LIBRATO_LOG_LEVEL')
+        # legacy
+        ENV.delete('LIBRATO_METRICS_USER')
+        ENV.delete('LIBRATO_METRICS_TOKEN')
+        ENV.delete('LIBRATO_METRICS_SOURCE')
+      end
 
       def listener_object
         listener = Object.new
