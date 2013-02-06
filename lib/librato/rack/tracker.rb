@@ -5,6 +5,8 @@ module Librato
     class Tracker
       extend Forwardable
 
+      SOURCE_REGEX = /\A[-:A-Za-z0-9_.]{1,255}\z/
+
       def_delegators :collector, :increment, :measure, :timing, :group
       def_delegators :logger, :log
 
@@ -23,9 +25,9 @@ module Librato
       def check_worker
         return if @worker # already running
         return if !should_start?
-        log :info, "config: #{config.dump}"
+        log(:debug) { "config: #{config.dump}" }
         @pid = $$
-        log :info, ">> starting up worker for pid #{@pid}..."
+        log(:debug) { ">> starting up worker for pid #{@pid}..." }
         @worker = Thread.new do
           worker = Worker.new
           worker.run_periodically(config.flush_interval) do
@@ -41,14 +43,14 @@ module Librato
 
       # send all current data to Metrics
       def flush
-        #log :debug, "flushing pid #{@pid} (#{Time.now}).."
+        log :debug, "flushing pid #{@pid} (#{Time.now}).."
         start = Time.now
         # thread safety is handled internally for stores
         queue = build_flush_queue(collector)
         queue.submit unless queue.empty?
-        #log :trace, "flushed pid #{@pid} in #{(Time.now - start)*1000.to_f}ms"
+        log(:trace) { "flushed pid #{@pid} in #{(Time.now - start)*1000.to_f}ms" }
       rescue Exception => error
-        #log :error, "submission failed permanently: #{error}"
+        log :error, "submission failed permanently: #{error}"
       end
 
       # source including process pid if indicated
@@ -102,11 +104,11 @@ module Librato
       def should_start?
         if !config.user || !config.token
           # don't show this unless we're debugging, expected behavior
-          #log :debug, 'halting: credentials not present.'
+          log :debug, 'halting: credentials not present.'
           false
-        # elsif qualified_source !~ SOURCE_REGEX
-        #   log :warn, "halting: '#{qualified_source}' is an invalid source name."
-        #   false
+        elsif qualified_source !~ SOURCE_REGEX
+          log :warn, "halting: '#{qualified_source}' is an invalid source name."
+          false
         # elsif !explicit_source && on_heroku
         #   log :warn, 'halting: source must be provided in configuration.'
         #   false
