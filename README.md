@@ -9,74 +9,70 @@ Currently Ruby 1.9.2+ is required.
 
 ## Quick Start
 
-Install `librato-rack` and relaunching your application will automatically start the reporting of metrics to your Metrics account.
+Install `librato-rack` as middleware in your application:
 
-After installation `librato-rack` will detect your environment and start reporting available performance information for your application.
+    use Librato::Rack
 
-Custom metrics can also be added easily:
+Configuring and relaunching your application will start the reporting of performance and request metrics. You can also track custom metrics by adding simple one-liners to your code:
 
-```ruby
-# keep counts of key events
-Librato.increment 'user.signup'
+    # keep counts of key events
+    Librato.increment 'user.signup'
 
-# easily benchmark sections of code to verify production performance
-Librato.timing 'my.complicated.work' do
-  # do work
-end
+    # benchmark sections of code to verify production performance
+    Librato.timing 'my.complicated.work' do
+      # do work
+    end
 
-# track averages across requests
-Librato.measure 'user.social_graph.nodes', user.social_graph.size
-```
+    # track averages across requests
+    Librato.measure 'user.social_graph.nodes', user.social_graph.size
 
-## Installation
+## Installation & Configuration
+
+Install the gem:
 
     $ gem install librato-rack
 
-## Configuration
+Or add to your Gemfile if using bundler:
+
+    gem "librato-rack"
+
+In your rackup file or equivalent, require and add the middleware:
+
+    require 'librato-rack'
+    use Librato::Rack
 
 If you don't have a Metrics account already, [sign up](https://metrics.librato.com/). In order to send measurements to Metrics you need to provide your account credentials to `librato-rack`. You can provide these one of two ways:
 
-##### Use a config file
-
-Create a `config/librato.yml` like the following:
-
-```yaml
-production:
-  user: <your-email>
-  token: <your-api-key>
-```
-
-The `librato.yml` file is parsed via ERB in case you need to add some host or environment-specific magic.
-
-Note that using a configuration file allows you to specify different configurations per-environment. Submission will be disabled in any environment without credentials.
-
 ##### Use environment variables
 
-Alternately you can provide `LIBRATO_USER` and `LIBRATO_TOKEN` environment variables. Unlike config file settings, environment variables will be used in all non-test environments (development, production, etc).
+By default you can use `LIBRATO_USER` and `LIBRATO_TOKEN` to pass your account data to the middleware. While these are the only required variables, there are a few more optional environment variables you may find useful.
 
-Note that if a config file is present, _all environment variables will be ignored_.
+* `LIBRATO_SOURCE` - the default source to use for submitted metrics. If this is not set, hostname of the executing machine will be the default source
+* `LIBRATO_PREFIX` - a prefix which will be appended to all metric names
+* `LIBRATO_LOG_LEVEL` - see logging section for more
 
-For more information on combining config files and environment variables, see the [full configuration docs](https://github.com/librato/librato-rails/wiki/Configuration).
+##### Use a configuration object
+
+If you want to do more complex configuration, use your own environment variables, or control your configuration in code, you can use a configuration object:
+
+    config = Librato::Rack::Configuration.new
+    config.user = 'myuser@mysite.com'
+    config.token = 'mytoken'
+    # …more configuration
+
+    use Librato::Rack, config
+
+See the configuration class for all available options.
 
 ##### Running on Heroku
 
-If you are using the Librato Metrics Heroku addon, your user and token environment variables will already be set in your Heroku environment. If you are running without the addon you will need to provide them yourself.
+If you are using the Librato Metrics Heroku addon, your `LIBRATO_USER` and `LIBRATO_TOKEN` environment variables will already be set in your Heroku environment. If you are running without the addon you will need to provide them yourself.
 
-In either case you will need to specify a custom source for your app to track properly. If `librato-rails` does not detect an explicit source it will not start. You can set the source in your environment:
+You must also specify a custom source for your app to track properly. If an explicit source is not set, `librato-rack` will not start. You can set the source in your environment:
 
     heroku config:add LIBRATO_SOURCE=myappname
 
-If you are using a config file, add your source entry to that instead.
-
-Full information on configuration options is available on the [configuration wiki page](https://github.com/librato/librato-rails/wiki/Configuration).
-
-Note that if Heroku idles your application measurements will not be sent until it receives another request and is restarted. If you see intermittent gaps in your measurements during periods of low traffic this is the most likely cause.
-
-## Automatic Measurements
-
-After installing `librato-rails` and restarting your app and you will see a number of new metrics appear in your Metrics account. These track request performance, sql queries, mail handling, and other key stats.
-
-Built-in performance metrics will start with either `rack` or `rails`, depending on the level they are being sampled from. For example: `rails.request.total` is the total number of requests rails has received each minute.
+NOTE: if Heroku idles your application no measurements will be sent until it receives another request and is restarted. If you see intermittent gaps in your measurements during periods of low traffic this is the most likely cause.
 
 ## Custom Measurements
 
@@ -86,16 +82,14 @@ Tracking anything that interests you is easy with Metrics. There are four primar
 
 Use for tracking a running total of something _across_ requests, examples:
 
-```ruby
-# increment the 'sales_completed' metric by one
-Librato.increment 'sales_completed'
+    # increment the 'sales_completed' metric by one
+    Librato.increment 'sales.completed'
 
-# increment by five
-Librato.increment 'items_purchased', :by => 5
+    # increment by five
+    Librato.increment 'items.purchased', :by => 5
 
-# increment with a custom source
-Librato.increment 'user.purchases', :source => user.id
-```
+    # increment with a custom source
+    Librato.increment 'user.purchases', :source => user.id
 
 Other things you might track this way: user signups, requests of a certain type or to a certain route, total jobs queued or processed, emails sent or received
 
@@ -105,67 +99,51 @@ Note that `increment` is primarily used for tracking the rate of occurrence of s
 
 Especially with custom sources you may want the opposite behavior - reporting a measurement only during intervals where `increment` was called on the metric:
 
-```ruby
-# report a value for 'user.uploaded_file' only during non-zero intervals
-Librato.increment 'user.uploaded_file', :source => user.id, :sporadic => true
-```
+    # report a value for 'user.uploaded_file' only during non-zero intervals
+    Librato.increment 'user.uploaded_file', :source => user.id, :sporadic => true
 
 #### measure
 
 Use when you want to track an average value _per_-request. Examples:
 
-```ruby
-Librato.measure 'user.social_graph.nodes', 212
+    Librato.measure 'user.social_graph.nodes', 212
 
-# report from a custom source
-Librato.measure 'jobs.queued', 3, :source => 'worker.12'
-```
+    # report from a custom source
+    Librato.measure 'jobs.queued', 3, :source => 'worker.12'
 
 #### timing
 
 Like `Librato.measure` this is per-request, but specialized for timing information:
 
-```ruby
-Librato.timing 'twitter.lookup.time', 21.2
-```
+    Librato.timing 'twitter.lookup.time', 21.2
 
 The block form auto-submits the time it took for its contents to execute as the measurement value:
 
-```ruby
-Librato.timing 'twitter.lookup.time' do
-  @twitter = Twitter.lookup(user)
-end
-```
+    Librato.timing 'twitter.lookup.time' do
+      @twitter = Twitter.lookup(user)
+    end
 
 #### group
 
 There is also a grouping helper, to make managing nested metrics easier. So this:
 
-```ruby
-Librato.measure 'memcached.gets', 20
-Librato.measure 'memcached.sets', 2
-Librato.measure 'memcached.hits', 18
-```
+    Librato.measure 'memcached.gets', 20
+    Librato.measure 'memcached.sets', 2
+    Librato.measure 'memcached.hits', 18
 
 Can also be written as:
 
-```ruby
-Librato.group 'memcached' do |g|
-  g.measure 'gets', 20
-  g.measure 'sets', 2
-  g.measure 'hits', 18
-end
-```
+    Librato.group 'memcached' do |g|
+      g.measure 'gets', 20
+      g.measure 'sets', 2
+      g.measure 'hits', 18
+    end
 
 Symbols can be used interchangably with strings for metric names.
 
-## Custom Prefix
-
-You can set an optional prefix to all metrics reported by `librato-rails` in your [configuration](https://github.com/librato/librato-rails/wiki/Configuration). This can be helpful for isolating test data or forcing different apps to use different metric names.
-
 ## Cross-Process Aggregation
 
-`librato-rails` submits measurements back to the Librato platform on a _per-process_ basis. By default these measurements are then combined into a single measurement per source (default is your hostname) before persisting the data.
+`librato-rack` submits measurements back to the Librato platform on a _per-process_ basis. By default these measurements are then combined into a single measurement per source (default is your hostname) before persisting the data.
 
 For example if you have 4 hosts with 8 unicorn instances each (i.e. 32 processes total), on the Metrics site you'll find 4 data streams (1 per host) instead of 32.
 Current pricing applies after aggregation, so in this case you will be charged for 4 streams instead of 32.
@@ -175,13 +153,13 @@ your config, which will append the process id to the source name used by each th
 
 ## Troubleshooting
 
-Note that it may take 2-3 minutes for the first results to show up in your Metrics account after you have started your servers with `librato-rails` enabled and the first request has been received.
+Note that it may take 2-3 minutes for the first results to show up in your Metrics account after you have started your servers with `librato-rack` enabled and the first request has been received.
 
-If you want to get more information about `librato-rails` submissions to the Metrics service you can set your `log_level` to `debug` (see [configuration](https://github.com/librato/librato-rails/wiki/Configuration)) to get detailed information added to your logs about the settings `librato-rails` is seeing at startup and when it is submitting.
+For more information about startup and submissions to the Metrics service you can set your `log_level` to `debug`. If you are having an issue with a specific metric, using `trace` will add the exact measurements being sent to your logs along with other details about `librato-rack` execution. Neither of these modes are recommended long-term in production as they will add significant volume to your log file and may slow operation somewhat.
 
-If you are having an issue with a specific metric, using a `log_level` of `trace` will add the exact measurements being sent to your logs along with lots of other information about `librato-rails` as it executes. Neither of these modes are recommended long-term in production as they will add quite a bit of volume to your log file and will slow operation somewhat. Note that submission I/O is non-blocking, submission times are total time - your process will continue to handle requests during submissions.
+Submission times are total time but submission I/O is non-blocking - your process will continue to handle requests during submissions.
 
-If you are debugging setting up `librato-rails` locally you can set `flush_interval` to something shorter (say 10s) to force submission more frequently. Don't change your `flush_interval` in production as it will not result in measurements showing up more quickly, but may affect performance.
+If you are debugging setup locally you can set `flush_interval` to something shorter (say 10s) to force submission more frequently. Don't change your `flush_interval` in production as it will not result in measurements showing up more quickly, but may affect performance.
 
 ## Contribution
 
