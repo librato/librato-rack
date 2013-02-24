@@ -3,6 +3,8 @@ librato-rack
 
 [![Build Status](https://secure.travis-ci.org/librato/librato-rack.png?branch=master)](http://travis-ci.org/librato/librato-rack)
 
+*Note: librato-rack is currently in beta and is currently recommended primarily for early-adopter use*
+
 `librato-rack` provides rack middleware which will report key statistics for your rack applications to [Librato Metrics](https://metrics.librato.com/). It will also allow you to easily track your own custom metrics. Metrics are delivered asynchronously behind the scenes so they won't affect performance of your requests.
 
 Currently Ruby 1.9.2+ is required.
