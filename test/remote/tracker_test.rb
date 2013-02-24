@@ -21,6 +21,7 @@ class TrackerRemoteTest < MiniTest::Unit::TestCase
       if ENV['LIBRATO_RACK_TEST_API_ENDPOINT']
         config.api_endpoint = ENV['LIBRATO_RACK_TEST_API_ENDPOINT']
       end
+      config.log_target = File.open('/dev/null', 'w') # ignore logs
       @tracker = Librato::Rack::Tracker.new(config)
       delete_all_metrics
     end
@@ -92,10 +93,13 @@ class TrackerRemoteTest < MiniTest::Unit::TestCase
       assert collector.aggregate.empty?, 'measures and timings should be cleared with flush'
     end
 
-    def test_empty_flush_should_not_be_sent
-      tracker.flush
-      assert_equal [], client.list
-    end
+    # Disabled for now because we always send a running process
+    # count at a minimum
+    #
+    # def test_empty_flush_should_not_be_sent
+    #   tracker.flush
+    #   assert_equal [], client.list
+    # end
 
     def test_flush_respects_prefix
       config.prefix = 'testyprefix'
