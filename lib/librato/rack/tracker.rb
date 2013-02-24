@@ -11,6 +11,7 @@ module Librato
       def_delegators :logger, :log
 
       attr_reader :config
+      attr_accessor :on_heroku
 
       def initialize(config)
         @config = config
@@ -110,9 +111,9 @@ module Librato
         elsif qualified_source !~ SOURCE_REGEX
           log :warn, "halting: '#{qualified_source}' is an invalid source name."
           false
-        # elsif !explicit_source && on_heroku
-        #   log :warn, 'halting: source must be provided in configuration.'
-        #   false
+        elsif on_heroku && !config.explicit_source?
+          log :warn, 'halting: source must be provided in configuration.'
+          false
         else
           true
         end
