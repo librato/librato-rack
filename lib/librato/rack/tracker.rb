@@ -11,6 +11,7 @@ module Librato
       def_delegators :logger, :log
 
       attr_reader :config
+      attr_accessor :on_heroku
 
       def initialize(config)
         @config = config
@@ -103,6 +104,8 @@ module Librato
       end
 
       def should_start?
+        return false if @pid_checked == $$ # only check once per process
+        @pid_checked = $$
         if !config.user || !config.token
           # don't show this unless we're debugging, expected behavior
           log :debug, 'halting: credentials not present.'
@@ -110,9 +113,9 @@ module Librato
         elsif qualified_source !~ SOURCE_REGEX
           log :warn, "halting: '#{qualified_source}' is an invalid source name."
           false
-        # elsif !explicit_source && on_heroku
-        #   log :warn, 'halting: source must be provided in configuration.'
-        #   false
+        elsif on_heroku && !config.explicit_source?
+          log :warn, 'halting: source must be provided in configuration.'
+          false
         else
           true
         end

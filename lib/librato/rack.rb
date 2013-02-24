@@ -49,7 +49,13 @@ module Librato
 
     def check_log_output(env)
       return if @log_target
-      config.log_target ||= env['rack.errors'] || ::Logger.new($stderr)
+      if env.keys.include?('HTTP_X_HEROKU_QUEUE_DEPTH') # on heroku
+        tracker.on_heroku = true
+        default = ::Logger.new($stdout)
+      else
+        default = env['rack.errors'] || $stderr
+      end
+      config.log_target ||= default
       @log_target = config.log_target
     end
 
