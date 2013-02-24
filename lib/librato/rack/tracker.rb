@@ -104,6 +104,8 @@ module Librato
       end
 
       def should_start?
+        return false if @pid_checked == $$ # only check once per process
+        @pid_checked = $$
         if !config.user || !config.token
           # don't show this unless we're debugging, expected behavior
           log :debug, 'halting: credentials not present.'

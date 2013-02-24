@@ -28,7 +28,8 @@ module Librato
         assert buffer_lines[0].index('source must be provided')
 
         config.source = 'myapp'
-        assert_equal true, tracker.send(:should_start?)
+        new_tracker = Tracker.new(config)
+        assert_equal true, new_tracker.send(:should_start?)
       end
 
       private
