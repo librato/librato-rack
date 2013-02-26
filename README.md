@@ -1,7 +1,7 @@
 librato-rack
 =======
 
-[![Build Status](https://secure.travis-ci.org/librato/librato-rack.png?branch=master)](http://travis-ci.org/librato/librato-rack)
+[![Build Status](https://secure.travis-ci.org/librato/librato-rack.png?branch=master)](http://travis-ci.org/librato/librato-rack) [![Code Climate](https://codeclimate.com/github/librato/librato-rack.png)](https://codeclimate.com/github/librato/librato-rack)
 
 *Note: librato-rack is currently in beta and is currently recommended primarily for early-adopter use*
 
