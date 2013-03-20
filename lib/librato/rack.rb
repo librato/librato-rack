@@ -30,7 +30,12 @@ module Librato
   class Rack
     attr_reader :config, :tracker
 
-    def initialize(app, config = Configuration.new)
+    def initialize(app, options={})
+      if options.respond_to?(:tracker) # old-style single argument
+        config = options
+      else
+        config = options.fetch(:config, Configuration.new)
+      end
       @app, @config = app, config
       @tracker = Tracker.new(@config)
       Librato.register_tracker(@tracker) # create global reference
