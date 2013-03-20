@@ -24,7 +24,7 @@ module Librato
   #
   #   app = Rack::Builder.app do
   #     use Librato::Rack
-  #     run lambda { |env| [200, {"Content-Type" => 'text/html'}, ["Hello!"]]}
+  #     run lambda { |env| [200, {"Content-Type" => 'text/html'}, ["Hello!"]] }
   #   end
   #
   class Rack
@@ -86,6 +86,7 @@ module Librato
     end
 
     def record_request_metrics(status, duration)
+      return if config.disable_rack_metrics
       tracker.group 'rack.request' do |group|
         group.increment 'total'
         group.timing    'time', duration
@@ -102,6 +103,7 @@ module Librato
     end
 
     def record_exception(exception)
+      return if config.disable_rack_metrics
       tracker.increment 'rack.request.exceptions'
     end
 
