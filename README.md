@@ -62,7 +62,7 @@ If you want to do more complex configuration, use your own environment variables
     config.token = 'mytoken'
     # …more configuration
 
-    use Librato::Rack, config
+    use Librato::Rack, :config => config
 
 See the configuration class for all available options.
 
