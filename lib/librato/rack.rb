@@ -72,15 +72,7 @@ module Librato
     end
 
     def record_header_metrics(env)
-      return unless env.keys.include?('HTTP_X_HEROKU_QUEUE_DEPTH')
-
-      tracker.group 'rack.heroku' do |group|
-        group.group 'queue' do |q|
-          q.measure 'depth',     env['HTTP_X_HEROKU_QUEUE_DEPTH'].to_f
-          q.timing  'wait_time', env['HTTP_X_HEROKU_QUEUE_WAIT_TIME'].to_f
-        end
-        group.measure 'dynos', env['HTTP_X_HEROKU_DYNOS_IN_USE'].to_f
-      end
+      # TODO: track generalized queue wait
     end
 
     def record_request_metrics(status, duration)
