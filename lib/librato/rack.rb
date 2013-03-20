@@ -54,7 +54,7 @@ module Librato
 
     def check_log_output(env)
       return if @log_target
-      if env.keys.include?('HTTP_X_HEROKU_QUEUE_DEPTH') # on heroku
+      if in_heroku_env?
         tracker.on_heroku = true
         default = ::Logger.new($stdout)
       else
@@ -62,6 +62,11 @@ module Librato
       end
       config.log_target ||= default
       @log_target = config.log_target
+    end
+
+    def in_heroku_env?
+      # don't have any custom http vars anymore, check if hostname is UUID
+      Socket.gethostname =~ /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/i
     end
 
     def process_request(env)
@@ -77,15 +82,7 @@ module Librato
     end
 
     def record_header_metrics(env)
-      return unless env.keys.include?('HTTP_X_HEROKU_QUEUE_DEPTH')
-
-      tracker.group 'rack.heroku' do |group|
-        group.group 'queue' do |q|
-          q.measure 'depth',     env['HTTP_X_HEROKU_QUEUE_DEPTH'].to_f
-          q.timing  'wait_time', env['HTTP_X_HEROKU_QUEUE_WAIT_TIME'].to_f
-        end
-        group.measure 'dynos', env['HTTP_X_HEROKU_DYNOS_IN_USE'].to_f
-      end
+      # TODO: track generalized queue wait
     end
 
     def record_request_metrics(status, duration)
