@@ -11,7 +11,8 @@ module Librato
     #
     class Configuration
       attr_accessor :user, :token, :api_endpoint, :tracker, :source_pids,
-                    :log_level, :flush_interval, :log_target
+                    :log_level, :flush_interval, :log_target,
+                    :disable_rack_metrics
       attr_reader :prefix, :source
 
       def initialize
