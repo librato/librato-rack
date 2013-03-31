@@ -10,7 +10,7 @@ module Librato
   end
 
   def self.tracker
-    @tracker ||= Librato::Rack::Tracker.new
+    @tracker ||= Librato::Rack::Tracker.new(Librato::Rack::Configuration.new)
   end
 end
 
