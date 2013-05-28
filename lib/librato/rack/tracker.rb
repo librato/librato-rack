@@ -34,9 +34,9 @@ module Librato
           EventMachine::Synchrony.add_periodic_timer(config.flush_interval) { flush }
           @worker = true
 
-        # elsif eventmachine_mode?
-        #   EventMachine.add_periodic_timer(config.flush_interval) { flush }
-        #   @worker = true
+        elsif eventmachine_mode?
+          EventMachine.add_periodic_timer(config.flush_interval) { flush }
+          @worker = true
 
         else
           @worker = Thread.new do
@@ -143,9 +143,9 @@ module Librato
         ua_chunks.join(' ')
       end
 
-      # def eventmachine_mode?
-      #   ENV['LIBRATO_NETWORK_MODE'] and ENV['LIBRATO_NETWORK_MODE'] == 'eventmachine'
-      # end
+      def eventmachine_mode?
+        ENV['LIBRATO_NETWORK_MODE'] and ENV['LIBRATO_NETWORK_MODE'] == 'eventmachine'
+      end
 
       def em_synchrony_mode?
         ENV['LIBRATO_NETWORK_MODE'] and ENV['LIBRATO_NETWORK_MODE'] == 'synchrony'

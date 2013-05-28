@@ -52,6 +52,7 @@ By default you can use `LIBRATO_USER` and `LIBRATO_TOKEN` to pass your account d
 * `LIBRATO_SOURCE` - the default source to use for submitted metrics. If this is not set, hostname of the executing machine will be the default source
 * `LIBRATO_PREFIX` - a prefix which will be appended to all metric names
 * `LIBRATO_LOG_LEVEL` - see logging section for more
+* `LIBRATO_NETWORK_MODE` - set to `synchrony` if using `EventMachine::Synchrony` and/or `Rack::FiberPool`. Set to `eventmachine` if using `EventMachine`.
 
 ##### Use a configuration object
 
