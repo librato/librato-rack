@@ -29,10 +29,21 @@ module Librato
         log(:debug) { "config: #{config.dump}" }
         @pid = $$
         log(:debug) { ">> starting up worker for pid #{@pid}..." }
-        @worker = Thread.new do
-          worker = Worker.new
-          worker.run_periodically(config.flush_interval) do
-            flush
+
+        if em_synchrony_mode?
+          EventMachine::Synchrony.add_periodic_timer(config.flush_interval) { flush }
+          @worker = true
+
+        # elsif eventmachine_mode?
+        #   EventMachine.add_periodic_timer(config.flush_interval) { flush }
+        #   @worker = true
+
+        else
+          @worker = Thread.new do
+            worker = Worker.new
+            worker.run_periodically(config.flush_interval) do
+              flush
+            end
           end
         end
       end
@@ -132,6 +143,13 @@ module Librato
         ua_chunks.join(' ')
       end
 
+      # def eventmachine_mode?
+      #   ENV['LIBRATO_NETWORK_MODE'] and ENV['LIBRATO_NETWORK_MODE'] == 'eventmachine'
+      # end
+
+      def em_synchrony_mode?
+        ENV['LIBRATO_NETWORK_MODE'] and ENV['LIBRATO_NETWORK_MODE'] == 'synchrony'
+      end
     end
   end
 end
