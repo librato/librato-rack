@@ -30,21 +30,8 @@ module Librato
         @pid = $$
         log(:debug) { ">> starting up worker for pid #{@pid}..." }
 
-        if em_synchrony_mode?
-          EventMachine::Synchrony.add_periodic_timer(config.flush_interval) { flush }
-          @worker = true
-
-        elsif eventmachine_mode?
-          EventMachine.add_periodic_timer(config.flush_interval) { flush }
-          @worker = true
-
-        else
-          @worker = Thread.new do
-            worker = Worker.new
-            worker.run_periodically(config.flush_interval) do
-              flush
-            end
-          end
+        @worker = Worker.new.run_periodically(config.flush_interval) do
+          flush
         end
       end
 
@@ -141,14 +128,6 @@ module Librato
         ua_chunks << "librato-rack/#{Librato::Rack::VERSION}"
         ua_chunks << "(#{ruby_engine}; #{RUBY_VERSION}p#{RUBY_PATCHLEVEL}; #{RUBY_PLATFORM})"
         ua_chunks.join(' ')
-      end
-
-      def eventmachine_mode?
-        ENV['LIBRATO_NETWORK_MODE'] and ENV['LIBRATO_NETWORK_MODE'] == 'eventmachine'
-      end
-
-      def em_synchrony_mode?
-        ENV['LIBRATO_NETWORK_MODE'] and ENV['LIBRATO_NETWORK_MODE'] == 'synchrony'
       end
     end
   end
