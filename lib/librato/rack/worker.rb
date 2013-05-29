@@ -45,7 +45,7 @@ module Librato
       def loop_repeat
         if eventmachine_mode?
           op = Proc.new { sleep(@next_run - @now) }
-          cb = Proc.new { compensated_repeat     }
+          cb = Proc.new { compensated_repeat      }
 
           EM.defer(op, cb)
 
