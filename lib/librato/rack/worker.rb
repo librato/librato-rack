@@ -29,38 +29,40 @@ module Librato
       end
 
       def compensated_repeat
-        $log.d "compensated_repeat init.."
         unless @interrupt
-          now = Time.now
-          if now >= @next_run
+          @now = Time.now
+          if @now >= @next_run
             @proc.call
-            $log.d "compensated_repeat complete!"
-            while @next_run <= now
+            while @next_run <= @now
               @next_run += @period
             end
-
-          else
-            if eventmachine_mode?
-              op = Proc.new { sleep(@next_run - now) }
-              cb = Proc.new { compensated_repeat     }
-
-              EM.defer(op, cb)
-
-            elsif em_synchrony_mode?
-              EM::Synchrony.sleep(@next_run - now)
-              compensated_repeat
-
-            else
-              sleep(@next_run - now)
-              compensated_repeat
-
-            end
           end
+
+          loop_repeat
+        end
+      end
+
+      def loop_repeat
+        if eventmachine_mode?
+          op = Proc.new { sleep(@next_run - @now) }
+          cb = Proc.new { compensated_repeat     }
+
+          EM.defer(op, cb)
+
+        elsif em_synchrony_mode?
+          EM::Synchrony.sleep(@next_run - @now)
+          compensated_repeat
+
+        else
+          sleep(@next_run - @now)
+          compensated_repeat
+
         end
       end
 
       # Give some structure to worker start times so when possible
       # they will be in sync.
+      #
       def start_time(period)
         earliest = Time.now + period
         # already on a whole minute
