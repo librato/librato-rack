@@ -14,46 +14,12 @@ module Librato
       # infinitely unless @interrupt becomes true.
       #
       def run_periodically(period, &block)
-        @period   = period
-        @proc     = block
-        @next_run = start_time(period)
+        @proc = block
 
         if em_synchrony_mode? or eventmachine_mode?
-          compensated_repeat
+          compensated_repeat(period)
         else
-          @thread = Thread.new { compensated_repeat }
-        end
-      end
-
-      def compensated_repeat
-        unless @interrupt
-          @now = Time.now
-          if @now >= @next_run
-            @proc.call
-            while @next_run <= @now
-              @next_run += @period
-            end
-          end
-
-          loop_repeat
-        end
-      end
-
-      def loop_repeat
-        if eventmachine_mode?
-          op = Proc.new { sleep(@next_run - @now) }
-          cb = Proc.new { compensated_repeat      }
-
-          EM.defer(op, cb)
-
-        elsif em_synchrony_mode?
-          EM::Synchrony.sleep(@next_run - @now)
-          compensated_repeat
-
-        else
-          sleep(@next_run - @now)
-          compensated_repeat
-
+          @thread = Thread.new { compensated_repeat(period) }
         end
       end
 
@@ -73,13 +39,44 @@ module Librato
         end
       end
 
-      def eventmachine_mode?
-        ENV['LIBRATO_NETWORK_MODE'] == 'eventmachine'
+      def kill_thread
+        Thread.kill(@thread)
+      end
+
+      private
+
+      def compensated_repeat(period, first_run = nil)
+        next_run = first_run || start_time(period)
+        until @interrupt do
+          now = Time.now
+          if now >= next_run
+            @proc.call
+
+            while next_run <= now
+              next_run += period # schedule future run
+            end
+          end
+
+          interval = next_run - now
+          if eventmachine_mode?
+            EM.add_timer(interval) { compensated_repeat(period, next_run) }
+            break
+          elsif em_synchrony_mode?
+            EM::Synchrony.sleep(interval)
+          else
+            sleep(next_run - now)
+          end
+        end
       end
 
       def em_synchrony_mode?
         ENV['LIBRATO_NETWORK_MODE'] == 'synchrony'
       end
+
+      def eventmachine_mode?
+        ENV['LIBRATO_NETWORK_MODE'] == 'eventmachine'
+      end
+
     end
   end
 end
