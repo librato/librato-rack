@@ -29,11 +29,9 @@ module Librato
         log(:debug) { "config: #{config.dump}" }
         @pid = $$
         log(:debug) { ">> starting up worker for pid #{@pid}..." }
-        @worker = Thread.new do
-          worker = Worker.new
-          worker.run_periodically(config.flush_interval) do
-            flush
-          end
+
+        @worker = Worker.new.run_periodically(config.flush_interval) do
+          flush
         end
       end
 
@@ -131,7 +129,6 @@ module Librato
         ua_chunks << "(#{ruby_engine}; #{RUBY_VERSION}p#{RUBY_PATCHLEVEL}; #{RUBY_PLATFORM})"
         ua_chunks.join(' ')
       end
-
     end
   end
 end

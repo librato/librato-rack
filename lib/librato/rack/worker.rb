@@ -14,22 +14,55 @@ module Librato
       # infinitely unless @interrupt becomes true.
       #
       def run_periodically(period, &block)
-        next_run = start_time(period)
-        until @interrupt do
-          now = Time.now
-          if now >= next_run
-            block.call
-            while next_run <= now
-              next_run += period
-            end
-          else
-            sleep(next_run - now)
+        @period   = period
+        @proc     = block
+        @next_run = start_time(period)
+
+        if em_synchrony_mode? or eventmachine_mode?
+          compensated_repeat
+          Thread.current # Err.. why am I doing this?
+        else
+          Thread.new do
+            compensated_repeat
           end
+        end
+      end
+
+      def compensated_repeat
+        unless @interrupt
+          @now = Time.now
+          if @now >= @next_run
+            @proc.call
+            while @next_run <= @now
+              @next_run += @period
+            end
+          end
+
+          loop_repeat
+        end
+      end
+
+      def loop_repeat
+        if eventmachine_mode?
+          op = Proc.new { sleep(@next_run - @now) }
+          cb = Proc.new { compensated_repeat      }
+
+          EM.defer(op, cb)
+
+        elsif em_synchrony_mode?
+          EM::Synchrony.sleep(@next_run - @now)
+          compensated_repeat
+
+        else
+          sleep(@next_run - @now)
+          compensated_repeat
+
         end
       end
 
       # Give some structure to worker start times so when possible
       # they will be in sync.
+      #
       def start_time(period)
         earliest = Time.now + period
         # already on a whole minute
@@ -43,7 +76,13 @@ module Librato
         end
       end
 
-    end
+      def eventmachine_mode?
+        ENV['LIBRATO_NETWORK_MODE'] and ENV['LIBRATO_NETWORK_MODE'] == 'eventmachine'
+      end
 
+      def em_synchrony_mode?
+        ENV['LIBRATO_NETWORK_MODE'] and ENV['LIBRATO_NETWORK_MODE'] == 'synchrony'
+      end
+    end
   end
 end
