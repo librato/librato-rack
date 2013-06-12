@@ -20,11 +20,8 @@ module Librato
 
         if em_synchrony_mode? or eventmachine_mode?
           compensated_repeat
-          Thread.current # Err.. why am I doing this?
         else
-          Thread.new do
-            compensated_repeat
-          end
+          @thread = Thread.new { compensated_repeat }
         end
       end
 
@@ -77,11 +74,11 @@ module Librato
       end
 
       def eventmachine_mode?
-        ENV['LIBRATO_NETWORK_MODE'] and ENV['LIBRATO_NETWORK_MODE'] == 'eventmachine'
+        ENV['LIBRATO_NETWORK_MODE'] == 'eventmachine'
       end
 
       def em_synchrony_mode?
-        ENV['LIBRATO_NETWORK_MODE'] and ENV['LIBRATO_NETWORK_MODE'] == 'synchrony'
+        ENV['LIBRATO_NETWORK_MODE'] == 'synchrony'
       end
     end
   end
