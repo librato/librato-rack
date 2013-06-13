@@ -42,6 +42,9 @@ module Librato
 
       private
 
+      # run continuous loop executing every <period>, will start
+      # at <first_run> if set otherwise will auto-determine
+      # appropriate time for first run
       def compensated_repeat(period, first_run = nil)
         next_run = first_run || start_time(period)
         until @interrupt do
@@ -67,6 +70,7 @@ module Librato
         end
       end
 
+      # should result in :eventmachine, :synchrony, or :sleep
       def determine_wait_mode
         if ENV['LIBRATO_NETWORK_MODE']
           ENV['LIBRATO_NETWORK_MODE'].to_sym
