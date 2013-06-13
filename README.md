@@ -67,7 +67,7 @@ See the configuration class for all available options.
 
 ##### Running on Heroku
 
-If you are using the Librato Metrics Heroku addon, your `LIBRATO_USER` and `LIBRATO_TOKEN` environment variables will already be set in your Heroku environment. If you are running without the addon you will need to provide them yourself.
+If you are using the [Librato Metrics Heroku addon](https://addons.heroku.com/librato), your `LIBRATO_USER` and `LIBRATO_TOKEN` environment variables will already be set in your Heroku environment. If you are running without the addon you will need to provide them yourself.
 
 You must also specify a custom source for your app to track properly. If an explicit source is not set, `librato-rack` will not start. You can set the source in your environment:
 
