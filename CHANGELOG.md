@@ -1,3 +1,6 @@
+### Head
+* Add experimental support for EventMachine and EMSynchrony (Balwant K)
+
 ### Version 0.2.1
 * Fix exception if logging metrics before middleware init (Eric Holmes)
 
