@@ -17,8 +17,8 @@ module Librato
         @proc       = block
         @wait_mode  = determine_wait_mode
 
-        if em_synchrony_mode? or eventmachine_mode?
-          compensated_repeat(period)
+        if [:eventmachine, :synchrony].include?(@wait_mode)
+          compensated_repeat(period) # threading is already handled
         else
           @thread = Thread.new { compensated_repeat(period) }
         end
