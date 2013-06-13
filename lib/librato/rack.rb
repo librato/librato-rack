@@ -1,4 +1,5 @@
 require 'thread'
+require 'librato/rack/network_modes'
 require 'librato/metrics'
 
 module Librato
