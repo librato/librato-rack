@@ -8,7 +8,7 @@ end
 # console
 desc "Open an console session preloaded with this library"
 task :console do
-  sh "pry -rubygems -r ./lib/librato-rack.rb"
+  sh "pry -r ./lib/librato-rack.rb"
 end
 
 Bundler::GemHelper.install_tasks
