@@ -40,10 +40,6 @@ module Librato
         end
       end
 
-      def kill_thread
-        Thread.kill(@thread)
-      end
-
       private
 
       def compensated_repeat(period, first_run = nil)
