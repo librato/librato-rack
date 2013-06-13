@@ -14,7 +14,8 @@ module Librato
       # infinitely unless @interrupt becomes true.
       #
       def run_periodically(period, &block)
-        @proc = block
+        @proc       = block
+        @wait_mode  = determine_wait_mode
 
         if em_synchrony_mode? or eventmachine_mode?
           compensated_repeat(period)
@@ -58,10 +59,11 @@ module Librato
           end
 
           interval = next_run - now
-          if eventmachine_mode?
+          case @wait_mode
+          when :eventmachine
             EM.add_timer(interval) { compensated_repeat(period, next_run) }
             break
-          elsif em_synchrony_mode?
+          when :synchrony
             EM::Synchrony.sleep(interval)
           else
             sleep(next_run - now)
@@ -69,12 +71,12 @@ module Librato
         end
       end
 
-      def em_synchrony_mode?
-        ENV['LIBRATO_NETWORK_MODE'] == 'synchrony'
-      end
-
-      def eventmachine_mode?
-        ENV['LIBRATO_NETWORK_MODE'] == 'eventmachine'
+      def determine_wait_mode
+        if ENV['LIBRATO_NETWORK_MODE']
+          ENV['LIBRATO_NETWORK_MODE'].to_sym
+        else
+          :sleep
+        end
       end
 
     end
