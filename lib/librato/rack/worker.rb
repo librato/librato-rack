@@ -14,22 +14,19 @@ module Librato
       # infinitely unless @interrupt becomes true.
       #
       def run_periodically(period, &block)
-        next_run = start_time(period)
-        until @interrupt do
-          now = Time.now
-          if now >= next_run
-            block.call
-            while next_run <= now
-              next_run += period
-            end
-          else
-            sleep(next_run - now)
-          end
+        @proc       = block
+        @wait_mode  = determine_wait_mode
+
+        if [:eventmachine, :synchrony].include?(@wait_mode)
+          compensated_repeat(period) # threading is already handled
+        else
+          @thread = Thread.new { compensated_repeat(period) }
         end
       end
 
       # Give some structure to worker start times so when possible
       # they will be in sync.
+      #
       def start_time(period)
         earliest = Time.now + period
         # already on a whole minute
@@ -43,7 +40,41 @@ module Librato
         end
       end
 
-    end
+      private
 
+      def compensated_repeat(period, first_run = nil)
+        next_run = first_run || start_time(period)
+        until @interrupt do
+          now = Time.now
+          if now >= next_run
+            @proc.call
+
+            while next_run <= now
+              next_run += period # schedule future run
+            end
+          end
+
+          interval = next_run - now
+          case @wait_mode
+          when :eventmachine
+            EM.add_timer(interval) { compensated_repeat(period, next_run) }
+            break
+          when :synchrony
+            EM::Synchrony.sleep(interval)
+          else
+            sleep(next_run - now)
+          end
+        end
+      end
+
+      def determine_wait_mode
+        if ENV['LIBRATO_NETWORK_MODE']
+          ENV['LIBRATO_NETWORK_MODE'].to_sym
+        else
+          :sleep
+        end
+      end
+
+    end
   end
 end
