@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.summary     = "Use Librato Metrics with your rack application"
   s.description = "Rack middleware to report key app statistics and custom instrumentation to the Librato Metrics service."
 
-  s.files = Dir["{app,config,db,lib}/**/*"] + ["LICENSE", "Rakefile", "README.md"]
+  s.files = Dir["{app,config,db,lib}/**/*"] + ["LICENSE", "Rakefile", "README.md", "CHANGELOG.md"]
   s.test_files = Dir["test/**/*"]
 
   s.add_dependency "librato-metrics", "~> 1.0.2"
