@@ -140,7 +140,7 @@ Can also be written as:
       g.measure 'hits', 18
     end
 
-Symbols can be used interchangably with strings for metric names.
+Symbols can be used interchangeably with strings for metric names.
 
 ## Cross-Process Aggregation
 
