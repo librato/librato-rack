@@ -19,10 +19,9 @@ module Librato
       # infinitely unless @interrupt becomes true.
       #
       def run_periodically(period, &block)
-        @proc       = block
-        @wait_mode  = determine_wait_mode
+        @proc = block # store
 
-        if [:eventmachine, :synchrony].include?(@wait_mode)
+        if [:eventmachine, :synchrony].include?(timer)
           compensated_repeat(period) # threading is already handled
         else
           @thread = Thread.new { compensated_repeat(period) }
@@ -63,7 +62,7 @@ module Librato
           end
 
           interval = next_run - now
-          case @wait_mode
+          case timer
           when :eventmachine
             EM.add_timer(interval) { compensated_repeat(period, next_run) }
             break
@@ -72,15 +71,6 @@ module Librato
           else
             sleep(next_run - now)
           end
-        end
-      end
-
-      # should result in :eventmachine, :synchrony, or :sleep
-      def determine_wait_mode
-        if ENV['LIBRATO_NETWORK_MODE']
-          ENV['LIBRATO_NETWORK_MODE'].to_sym
-        else
-          :sleep
         end
       end
 
