@@ -38,6 +38,8 @@ module Librato
         @event_mode
       end
 
+      # set event_mode, valid options are EVENT_MODES or
+      # nil (the default) if not running in an evented context
       def event_mode=(mode)
         mode = mode.to_sym if mode
         # reject unless acceptable mode, allow for turning event_mode off

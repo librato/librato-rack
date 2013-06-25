@@ -30,7 +30,7 @@ module Librato
         @pid = $$
         log(:debug) { ">> starting up worker for pid #{@pid}..." }
 
-        @worker = Worker.new
+        @worker = Worker.new(:timer => config.event_mode)
         @worker.run_periodically(config.flush_interval) do
           flush
         end
