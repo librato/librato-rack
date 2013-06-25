@@ -31,6 +31,14 @@ module Librato
         assert_equal 0, start.sec%10, 'should be evenly divisible with whole minutes'
       end
 
+      def test_timer_type
+        worker = Worker.new
+        assert_equal :sleep, worker.timer
+
+        em_worker = Worker.new(:timer => 'eventmachine')
+        assert_equal :eventmachine, em_worker.timer
+      end
+
     end
   end
 end

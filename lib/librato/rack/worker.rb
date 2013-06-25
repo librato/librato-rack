@@ -5,9 +5,14 @@ module Librato
     # of how long execution takes.
     #
     class Worker
+      attr_reader :timer
 
-      def initialize
+      # available options:
+      #  * timer - type of timer to use, valid options are
+      #            :sleep (default), :eventmachine, or :synchrony
+      def initialize(options={})
         @interrupt = false
+        @timer = options.fetch(:timer, :sleep).to_sym
       end
 
       # run the given block every <period> seconds, looping
