@@ -10,6 +10,8 @@ module Librato
     #   config.token = 'mytoken'
     #
     class Configuration
+      EVENT_MODES = [:eventmachine, :synchrony]
+
       attr_accessor :user, :token, :api_endpoint, :tracker, :source_pids,
                     :log_level, :flush_interval, :log_target,
                     :disable_rack_metrics
@@ -29,6 +31,21 @@ module Librato
         self.prefix = ENV['LIBRATO_PREFIX'] || ENV['LIBRATO_METRICS_PREFIX']
         self.source = ENV['LIBRATO_SOURCE'] || ENV['LIBRATO_METRICS_SOURCE']
         self.log_level = ENV['LIBRATO_LOG_LEVEL'] || :info
+        self.event_mode = ENV['LIBRATO_EVENT_MODE']
+      end
+
+      def event_mode
+        @event_mode
+      end
+
+      def event_mode=(mode)
+        mode = mode.to_sym if mode
+        # reject unless acceptable mode, allow for turning event_mode off
+        if [*EVENT_MODES, nil].include?(mode)
+          @event_mode = mode
+        else
+          # TODO log warning
+        end
       end
 
       def explicit_source?
