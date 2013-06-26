@@ -85,7 +85,9 @@ module Librato
         ENV.delete('LIBRATO_USER')
         ENV.delete('LIBRATO_TOKEN')
         ENV.delete('LIBRATO_SOURCE')
+        ENV.delete('LIBRATO_PREFIX')
         ENV.delete('LIBRATO_LOG_LEVEL')
+        ENV.delete('LIBRATO_EVENT_MODE')
         # legacy
         ENV.delete('LIBRATO_METRICS_USER')
         ENV.delete('LIBRATO_METRICS_TOKEN')
