@@ -57,13 +57,37 @@ module Librato
         assert_equal 'newfoo', listener.prefix
       end
 
+      def test_event_mode
+        config = Configuration.new
+        assert_equal nil, config.event_mode
+
+        config.event_mode = :synchrony
+        assert_equal :synchrony, config.event_mode
+
+        # handle string config
+        config.event_mode = 'eventmachine'
+        assert_equal :eventmachine, config.event_mode
+
+        # handle invalid
+        config2 = Configuration.new
+        config2.event_mode = 'fooballoo'
+        assert_equal nil, config2.event_mode
+
+        # env detection
+        ENV['LIBRATO_EVENT_MODE'] = 'eventmachine'
+        config3 = Configuration.new
+        assert_equal :eventmachine, config3.event_mode
+      end
+
       private
 
       def clear_env_vars
         ENV.delete('LIBRATO_USER')
         ENV.delete('LIBRATO_TOKEN')
         ENV.delete('LIBRATO_SOURCE')
+        ENV.delete('LIBRATO_PREFIX')
         ENV.delete('LIBRATO_LOG_LEVEL')
+        ENV.delete('LIBRATO_EVENT_MODE')
         # legacy
         ENV.delete('LIBRATO_METRICS_USER')
         ENV.delete('LIBRATO_METRICS_TOKEN')
