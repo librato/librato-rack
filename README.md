@@ -50,7 +50,7 @@ By default you can use `LIBRATO_USER` and `LIBRATO_TOKEN` to pass your account d
 * `LIBRATO_SOURCE` - the default source to use for submitted metrics. If this is not set, hostname of the executing machine will be the default source
 * `LIBRATO_PREFIX` - a prefix which will be appended to all metric names
 * `LIBRATO_LOG_LEVEL` - see logging section for more
-* `LIBRATO_NETWORK_MODE` - set to `synchrony` if using `EventMachine::Synchrony` and/or `Rack::FiberPool`. Set to `eventmachine` if using `EventMachine`.
+* `LIBRATO_EVENT_MODE` - use with evented apps, see "Use with EventMachine" below
 
 ##### Use a configuration object
 
@@ -74,6 +74,12 @@ You must also specify a custom source for your app to track properly. If an expl
     heroku config:add LIBRATO_SOURCE=myappname
 
 NOTE: if Heroku idles your application no measurements will be sent until it receives another request and is restarted. If you see intermittent gaps in your measurements during periods of low traffic this is the most likely cause.
+
+##### Use with EventMachine and EM Synchrony
+
+`librato-rack` has experimental support for EventMachine and EM Synchrony apps.
+
+When using in an evented context set LIBRATO_EVENT_MODE to `'eventmachine'` if using [EventMachine](https://github.com/eventmachine/eventmachine) or `'synchrony'` if using [EM Synchrony](https://github.com/igrigorik/em-synchrony) and/or [Rack::FiberPool](https://github.com/alebsack/rack-fiber_pool). We're interested in maturing this support, so please let us know if you have any issues.
 
 ## Custom Measurements
 
