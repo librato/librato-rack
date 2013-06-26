@@ -65,6 +65,18 @@ module Librato
         @client ||= prepare_client
       end
 
+      # use custom faraday adapter if running in evented context
+      def custom_adapter
+        case config.event_mode
+        when :eventmachine
+          :em_http
+        when :synchrony
+          :em_synchrony
+        else
+          nil
+        end
+      end
+
       def build_flush_queue(collector)
         queue = ValidatingQueue.new( :client => client, :source => qualified_source,
           :prefix => config.prefix, :skip_measurement_times => true )
@@ -94,6 +106,9 @@ module Librato
         client.authenticate config.user, config.token
         client.api_endpoint = config.api_endpoint
         client.custom_user_agent = user_agent
+        if custom_adapter
+          client.faraday_adapter = custom_adapter
+        end
         client
       end
 
