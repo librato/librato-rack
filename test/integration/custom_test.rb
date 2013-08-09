@@ -3,7 +3,7 @@ require 'rack/test'
 
 # Tests for universal tracking for all request paths
 #
-class CustomTest < MiniTest::Unit::TestCase
+class CustomTest < Minitest::Test
   include Rack::Test::Methods
 
   def app

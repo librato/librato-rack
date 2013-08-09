@@ -2,7 +2,7 @@ require 'test_helper'
 
 module Librato
   class Rack
-    class TrackerTest < MiniTest::Unit::TestCase
+    class TrackerTest < Minitest::Test
 
       def test_sets_prefix
         config = Configuration.new

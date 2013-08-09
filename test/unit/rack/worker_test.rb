@@ -3,7 +3,7 @@ require 'stringio'
 
 module Librato
   class Rack
-    class WorkerTest < MiniTest::Unit::TestCase
+    class WorkerTest < Minitest::Test
 
       def test_basic_use
         worker = Worker.new

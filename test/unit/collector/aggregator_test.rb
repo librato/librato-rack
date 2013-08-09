@@ -2,7 +2,7 @@ require 'test_helper'
 
 module Librato
   class Collector
-    class AggregatorTest < MiniTest::Unit::TestCase
+    class AggregatorTest < Minitest::Test
 
       def setup
         @agg = Aggregator.new

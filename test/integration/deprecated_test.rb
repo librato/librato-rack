@@ -3,7 +3,7 @@ require 'rack/test'
 
 # Tests for deprecated functionality
 #
-class DeprecatedTest < MiniTest::Unit::TestCase
+class DeprecatedTest < Minitest::Test
   include Rack::Test::Methods
 
   def app

@@ -2,7 +2,7 @@ require 'test_helper'
 
 module Librato
   class Rack
-    class ConfigurationTest < MiniTest::Unit::TestCase
+    class ConfigurationTest < Minitest::Test
 
       def setup
         clear_env_vars

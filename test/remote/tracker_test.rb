@@ -4,7 +4,7 @@ require 'rack/test'
 
 # Tests for universal tracking for all request paths
 #
-class TrackerRemoteTest < MiniTest::Unit::TestCase
+class TrackerRemoteTest < Minitest::Test
 
   # These tests connect to the Metrics server with an account and verify remote
   # functions. They will only run if the below environment variables are set.

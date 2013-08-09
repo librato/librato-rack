@@ -3,7 +3,7 @@ require 'stringio'
 
 module Librato
   class Rack
-    class LoggerTest < MiniTest::Unit::TestCase
+    class LoggerTest < Minitest::Test
 
       def setup
         @buffer = StringIO.new

@@ -2,7 +2,7 @@ require 'test_helper'
 
 module Librato
   class Collector
-    class GroupTest < MiniTest::Unit::TestCase
+    class GroupTest < Minitest::Test
 
       def test_increment
         collector = Collector.new

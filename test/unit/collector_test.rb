@@ -1,7 +1,7 @@
 require 'test_helper'
 
 module Librato
-  class CollectorTest < MiniTest::Unit::TestCase
+  class CollectorTest < Minitest::Test
 
     def test_proxy_object_access
       collector = Collector.new

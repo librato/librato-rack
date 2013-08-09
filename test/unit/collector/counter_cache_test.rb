@@ -2,7 +2,7 @@ require 'test_helper'
 
 module Librato
   class Collector
-    class CounterCacheTest < MiniTest::Unit::TestCase
+    class CounterCacheTest < Minitest::Test
 
       def test_basic_operations
         cc = CounterCache.new
