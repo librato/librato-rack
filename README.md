@@ -1,7 +1,7 @@
 librato-rack
 =======
 
-[![Build Status](https://secure.travis-ci.org/librato/librato-rack.png?branch=master)](http://travis-ci.org/librato/librato-rack) [![Code Climate](https://codeclimate.com/github/librato/librato-rack.png)](https://codeclimate.com/github/librato/librato-rack)
+[![Gem Version](https://badge.fury.io/rb/librato-rack.png)](http://badge.fury.io/rb/librato-rack) [![Build Status](https://secure.travis-ci.org/librato/librato-rack.png?branch=master)](http://travis-ci.org/librato/librato-rack) [![Code Climate](https://codeclimate.com/github/librato/librato-rack.png)](https://codeclimate.com/github/librato/librato-rack)
 
 `librato-rack` provides rack middleware which will report key statistics for your rack applications to [Librato Metrics](https://metrics.librato.com/). It will also allow you to easily track your own custom metrics. Metrics are delivered asynchronously behind the scenes so they won't affect performance of your requests.
 
