@@ -18,4 +18,10 @@ Gem::Specification.new do |s|
 
   s.add_dependency "librato-metrics", "~> 1.0.2"
   s.add_development_dependency "minitest"
+
+  signing_key = File.expand_path("~/.gem/librato-private_key.pem")
+  if File.exists?(signing_key)
+    s.signing_key = signing_key
+    s.cert_chain = ["certs/librato-public.pem"]
+  end
 end
