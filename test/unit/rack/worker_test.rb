@@ -37,6 +37,10 @@ module Librato
 
         em_worker = Worker.new(:timer => 'eventmachine')
         assert_equal :eventmachine, em_worker.timer
+
+        # tolerate explicit nils
+        worker = Worker.new(:timer => nil)
+        assert_equal :sleep, worker.timer
       end
 
     end
