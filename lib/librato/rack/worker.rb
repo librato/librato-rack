@@ -12,7 +12,7 @@ module Librato
       #            :sleep (default), :eventmachine, or :synchrony
       def initialize(options={})
         @interrupt = false
-        @timer = options.fetch(:timer, :sleep).to_sym
+        @timer = (options[:timer] || :sleep).to_sym
       end
 
       # run the given block every <period> seconds, looping
