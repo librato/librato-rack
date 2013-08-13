@@ -27,18 +27,33 @@ module Librato
   #     run lambda { |env| [200, {"Content-Type" => 'text/html'}, ["Hello!"]] }
   #   end
   #
+  # @example Using a custom config object
+  #   config = Librato::Rack::Configuration.new
+  #   config.user = 'myuser@mysite.com'
+  #   config.token = 'mytoken'
+  #   …more configuration
+  #
+  #   use Librato::Rack, :config => config
+  #   run MyApp
+  #
   class Rack
     attr_reader :config, :tracker
 
     def initialize(app, options={})
+      old_style = false
       if options.respond_to?(:tracker) # old-style single argument
         config = options
+        old_style = true
       else
         config = options.fetch(:config, Configuration.new)
       end
       @app, @config = app, config
       @tracker = Tracker.new(@config)
       Librato.register_tracker(@tracker) # create global reference
+
+      if old_style
+        @tracker.deprecate 'middleware setup no longer takes a single argument, use `use Librato::Rack :config => config` instead.'
+      end
     end
 
     def call(env)
@@ -60,7 +75,7 @@ module Librato
       else
         default = env['rack.errors'] || $stderr
       end
-      config.log_target ||= default
+      @tracker.update_log_target(config.log_target ||= default)
       @log_target = config.log_target
     end
 

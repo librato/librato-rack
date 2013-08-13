@@ -34,11 +34,18 @@ module Librato
         @worker.run_periodically(config.flush_interval) do
           flush
         end
+
+        config.deprecations.each { |d| deprecate(d) }
       end
 
       # primary collector object used by this tracker
       def collector
         @collector ||= Librato::Collector.new
+      end
+
+      # log a deprecation message
+      def deprecate(message)
+        log :warn, "DEPRECATION: #{message}"
       end
 
       # send all current data to Metrics
@@ -56,6 +63,11 @@ module Librato
       # source including process pid if indicated
       def qualified_source
         config.source_pids ? "#{source}.#{$$}" : source
+      end
+
+      # change output stream for logging
+      def update_log_target(target)
+        logger.outlet = target
       end
 
       private
