@@ -8,8 +8,10 @@ module Librato
         collector = Collector.new
         collector.group 'foo' do |g|
           g.increment :bar
+          g.increment :baz, :source => 'bang'
         end
         assert_equal 1, collector.counters['foo.bar']
+        assert_equal 1, collector.counters.fetch('foo.baz', source: 'bang')
       end
 
       def test_measure
