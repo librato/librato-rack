@@ -1,5 +1,7 @@
-### Head
+### Version 0.3.0
 * Add experimental support for EventMachine and EMSynchrony (Balwant K)
+* Start testing suite against jruby/rbx
+* Gem is now signed
 
 ### Version 0.2.1
 * Fix exception if logging metrics before middleware init (Eric Holmes)
