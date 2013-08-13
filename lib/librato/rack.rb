@@ -75,7 +75,7 @@ module Librato
       else
         default = env['rack.errors'] || $stderr
       end
-      config.log_target ||= default
+      @tracker.update_log_target(config.log_target ||= default)
       @log_target = config.log_target
     end
 

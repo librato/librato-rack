@@ -65,6 +65,11 @@ module Librato
         config.source_pids ? "#{source}.#{$$}" : source
       end
 
+      # change output stream for logging
+      def update_log_target(target)
+        logger.outlet = target
+      end
+
       private
 
       # access to client instance
