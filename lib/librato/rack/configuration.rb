@@ -15,7 +15,7 @@ module Librato
       attr_accessor :user, :token, :api_endpoint, :tracker, :source_pids,
                     :log_level, :flush_interval, :log_target,
                     :disable_rack_metrics
-      attr_reader :prefix, :source
+      attr_reader :prefix, :source, :deprecations
 
       def initialize
         # set up defaults
@@ -24,6 +24,7 @@ module Librato
         self.flush_interval = 60
         self.source_pids = false
         @listeners = []
+        @deprecations = []
 
         # check environment
         self.user = ENV['LIBRATO_USER'] || ENV['LIBRATO_METRICS_USER']
@@ -32,6 +33,7 @@ module Librato
         self.source = ENV['LIBRATO_SOURCE'] || ENV['LIBRATO_METRICS_SOURCE']
         self.log_level = ENV['LIBRATO_LOG_LEVEL'] || :info
         self.event_mode = ENV['LIBRATO_EVENT_MODE']
+        check_deprecations
       end
 
       def event_mode
@@ -74,6 +76,20 @@ module Librato
           fields[field.to_sym] = self.send(field)
         end
         fields
+      end
+
+      private
+
+      def check_deprecations
+        %w{USER TOKEN PREFIX SOURCE}.each do |item|
+          if ENV["LIBRATO_METRICS_#{item}"]
+            deprecate "LIBRATO_METRICS_#{item} will be removed in a future release, please use LIBRATO_#{item} instead."
+          end
+        end
+      end
+
+      def deprecate(message)
+        @deprecations << message
       end
 
     end
