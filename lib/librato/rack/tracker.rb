@@ -43,6 +43,11 @@ module Librato
         @collector ||= Librato::Collector.new
       end
 
+      # log a deprecation message
+      def deprecate(message)
+        log :warn, "DEPRECATION: #{message}"
+      end
+
       # send all current data to Metrics
       def flush
         log :debug, "flushing pid #{@pid} (#{Time.now}).."
@@ -88,10 +93,6 @@ module Librato
         queue.add 'rack.processes' => 1
         trace_queued(queue.queued) #if should_log?(:trace)
         queue
-      end
-
-      def deprecate(message)
-        log :warn, "DEPRECATION: #{message}"
       end
 
       # trace metrics being sent
