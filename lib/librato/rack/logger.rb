@@ -8,10 +8,12 @@ module Librato
     class Logger
       LOG_LEVELS = [:off, :error, :warn, :info, :debug, :trace]
 
-      attr_accessor :logger, :prefix
+      attr_accessor :prefix
+      attr_reader :outlet
 
-      def initialize(logger)
-        self.logger = logger
+      def initialize(outlet=nil)
+        @buffer = []
+        self.outlet = outlet
         self.prefix = '[librato-rack] '
       end
 
@@ -24,12 +26,10 @@ module Librato
       def log(level, message=nil, &block)
         return unless should_log?(level)
         message = prefix + (message || block.call)
-        if logger.respond_to?(:puts) # io obj
-          logger.puts(message)
-        elsif logger.respond_to?(:error) # logger obj
-          log_to_logger(level, message)
+        if outlet.nil?
+          buffer(level, message)
         else
-          raise "invalid logger object"
+          write_to_outlet(level, message)
         end
       end
 
@@ -48,7 +48,20 @@ module Librato
         @log_level ||= :info
       end
 
+      def outlet=(outlet)
+        @outlet = outlet
+        flush_buffer unless (outlet.nil? || @buffer.empty?)
+      end
+
       private
+
+      def buffer(level, message)
+        @buffer << [level, message]
+      end
+
+      def flush_buffer
+        @buffer.each { |buffered| write_to_outlet(*buffered) }
+      end
 
       # write message to an ruby stdlib logger object or another class with
       # similar interface, respecting log levels when we can map them
@@ -59,11 +72,21 @@ module Librato
         else
           method = :info
         end
-        logger.send(method, message)
+        outlet.send(method, message)
       end
 
       def should_log?(level)
         LOG_LEVELS.index(self.log_level) >= LOG_LEVELS.index(level)
+      end
+
+      def write_to_outlet(level, message)
+        if outlet.respond_to?(:puts) # io obj
+          outlet.puts(message)
+        elsif outlet.respond_to?(:error) # logger obj
+          log_to_logger(level, message)
+        else
+          raise "invalid outlet: not a Logger or IO object"
+        end
       end
 
     end
