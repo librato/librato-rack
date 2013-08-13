@@ -79,6 +79,23 @@ module Librato
         assert buffer_lines[0].index('[test prefix] '), 'should use prefix'
       end
 
+      def test_log_buffering
+        buffer = StringIO.new
+        logger = Logger.new # no outlet provided
+        logger.prefix = ''
+
+        logger.log :error, 'some business'
+        logger.log :error, 'some more business'
+        logger.outlet = buffer
+        logger.log :error, 'some ongoing business'
+
+        buffer.rewind
+        lines = buffer.readlines
+        assert_equal 'some business', lines[0].chomp
+        assert_equal 'some more business', lines[1].chomp
+        assert_equal 'some ongoing business', lines[2].chomp
+      end
+
       private
 
       def buffer_lines
