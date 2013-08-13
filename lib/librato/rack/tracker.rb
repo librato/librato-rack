@@ -34,6 +34,8 @@ module Librato
         @worker.run_periodically(config.flush_interval) do
           flush
         end
+
+        config.deprecations.each { |d| deprecate(d) }
       end
 
       # primary collector object used by this tracker
@@ -86,6 +88,10 @@ module Librato
         queue.add 'rack.processes' => 1
         trace_queued(queue.queued) #if should_log?(:trace)
         queue
+      end
+
+      def deprecate(message)
+        log :warn, "DEPRECATION: #{message}"
       end
 
       # trace metrics being sent
