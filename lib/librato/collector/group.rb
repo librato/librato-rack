@@ -13,9 +13,9 @@ module Librato
         yield self.class.new(@collector, prefix)
       end
 
-      def increment(counter, by=1)
+      def increment(counter, options={})
         counter = "#{@prefix}#{counter}"
-        @collector.increment counter, by
+        @collector.increment counter, options
       end
 
       def measure(*args, &block)
