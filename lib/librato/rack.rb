@@ -59,9 +59,10 @@ module Librato
     def call(env)
       check_log_output(env)
       @tracker.check_worker
+      request_method = env["REQUEST_METHOD"]
       record_header_metrics(env)
       response, duration = process_request(env)
-      record_request_metrics(response.first, duration)
+      record_request_metrics(response.first, request_method, duration)
       response
     end
 
@@ -100,7 +101,7 @@ module Librato
       # TODO: track generalized queue wait
     end
 
-    def record_request_metrics(status, duration)
+    def record_request_metrics(status, http_method, duration)
       return if config.disable_rack_metrics
       tracker.group 'rack.request' do |group|
         group.increment 'total'
@@ -113,6 +114,12 @@ module Librato
 
           s.timing "#{status}.time", duration
           s.timing "#{status.to_s[0]}xx.time", duration
+        end
+
+        group.group 'method' do |m|
+          http_method.downcase!
+          m.increment http_method
+          m.timing "#{http_method}.time", duration
         end
       end
     end

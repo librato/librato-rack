@@ -42,6 +42,18 @@ class RequestTest < Minitest::Test
     assert_equal 1, aggregate["rack.request.status.2xx.time"][:count]
   end
 
+  def test_track_http_method_info
+    get '/'
+
+    assert_equal 1, counters['rack.request.method.get']
+    assert_equal 1, aggregate['rack.request.method.get.time'][:count]
+
+    post '/'
+
+    assert_equal 1, counters['rack.request.method.post']
+    assert_equal 1, aggregate['rack.request.method.post.time'][:count]
+  end
+
   def test_track_exceptions
     begin
       get '/exception'
