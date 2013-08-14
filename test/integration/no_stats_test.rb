@@ -1,7 +1,7 @@
 require 'test_helper'
 require 'rack/test'
 
-# Tests for universal tracking for all request paths
+# Tests to ensure config.disable_rack_metrics disables stats
 #
 class NoStatsTest < Minitest::Test
   include Rack::Test::Methods
