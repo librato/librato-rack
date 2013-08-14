@@ -57,7 +57,7 @@ module Librato
     end
 
     def call(env)
-      check_log_output(env)
+      check_log_output(env) if !@log_target
       @tracker.check_worker
       request_method = env["REQUEST_METHOD"]
       record_header_metrics(env)
