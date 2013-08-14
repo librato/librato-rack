@@ -57,7 +57,7 @@ module Librato
     end
 
     def call(env)
-      check_log_output(env) if !@log_target
+      check_log_output(env) unless @log_target
       @tracker.check_worker
       request_method = env["REQUEST_METHOD"]
       record_header_metrics(env)
@@ -68,6 +68,9 @@ module Librato
 
     private
 
+    # this generally will only get called on the first request
+    # it figures out the environment-appropriate logging outlet
+    # and notifies config and tracker about it
     def check_log_output(env)
       return if @log_target
       if in_heroku_env?
