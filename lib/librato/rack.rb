@@ -101,7 +101,18 @@ module Librato
     end
 
     def record_header_metrics(env)
-      # TODO: track generalized queue wait
+      queue_start = env['HTTP_X_REQUEST_START'] || env['HTTP_X_QUEUE_START']
+      if queue_start
+        queue_start = queue_start.to_s.gsub('t=', '').to_i
+        case queue_start.to_s.length
+        when 16 # microseconds
+          wait = ((Time.now.to_f * 1000000).to_i - queue_start) / 1000.0
+          tracker.timing 'rack.request.queue.time', wait
+        when 13 # milliseconds
+          wait = (Time.now.to_f * 1000).to_i - queue_start
+          tracker.timing 'rack.request.queue.time', wait
+        end
+      end
     end
 
     def record_request_metrics(status, http_method, duration)
