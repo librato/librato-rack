@@ -12,7 +12,7 @@ module Librato
         worker = Worker.new
         counter = 0
 
-        Thread.new do
+        thread = Thread.new do
           worker.run_periodically(0.1) do
             counter += 1
           end
@@ -20,6 +20,7 @@ module Librato
 
         sleep 0.45
         assert_equal counter, 4
+        Thread.kill(thread)
       end
 
       def test_start_time
@@ -52,7 +53,7 @@ module Librato
         worker = Worker.new(:timer => :eventmachine)
         counter = 0
 
-        Thread.new do
+        thread = Thread.new do
           EventMachine.run do
             worker.run_periodically(0.1) do
               counter += 1
@@ -62,13 +63,14 @@ module Librato
 
         sleep 0.45
         assert_equal counter, 4
+        Thread.kill(thread)
       end
 
       def test_em_synchrony_timer
         worker = Worker.new(:timer => :synchrony)
         counter = 0
 
-        Thread.new do
+        thread = Thread.new do
           EM.synchrony do
             worker.run_periodically(0.1) do
               counter += 1
@@ -79,6 +81,7 @@ module Librato
 
         sleep 0.45
         assert_equal counter, 4
+        Thread.kill(thread)
       end
 
     end
