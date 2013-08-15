@@ -10,9 +10,12 @@ module Librato
       # available options:
       #  * timer - type of timer to use, valid options are
       #            :sleep (default), :eventmachine, or :synchrony
+      #  * sync  - try to synchronize timer executions to whole
+      #            minutes or subdivisions thereof
       def initialize(options={})
         @interrupt = false
         @timer = (options[:timer] || :sleep).to_sym
+        @sync = options[:sync] || false
       end
 
       # run the given block every <period> seconds, looping
@@ -32,15 +35,27 @@ module Librato
       # they will be in sync.
       #
       def start_time(period)
-        earliest = Time.now + period
-        # already on a whole minute
-        return earliest if earliest.sec == 0
-        if period > 30
-          # bump to whole minute
-          earliest + (60-earliest.sec)
+        if @sync
+          earliest = Time.now + period
+          # already on a whole minute
+          return earliest if earliest.sec == 0
+          if period > 30
+            # bump to whole minute
+            earliest + (60-earliest.sec)
+          else
+            # ensure sync to whole minute if minute is evenly divisible
+            earliest + (period-(earliest.sec%period))
+          end
         else
-          # ensure sync to whole minute if minute is evenly divisible
-          earliest + (period-(earliest.sec%period))
+          if period > 30
+            # ensure some wobble in start times,
+            # trade a slightly irregular first period for a more even
+            # distribution for network requests between processes
+            start = Time.now
+            start + (60-start.sec) + rand(60)
+          else
+            Time.now + period
+          end
         end
       end
 
