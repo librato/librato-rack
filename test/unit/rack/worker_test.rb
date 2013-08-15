@@ -1,6 +1,9 @@
 require 'test_helper'
 require 'stringio'
 
+require 'eventmachine'
+require 'em-synchrony'
+
 module Librato
   class Rack
     class WorkerTest < Minitest::Test
@@ -8,11 +11,13 @@ module Librato
       def test_basic_use
         worker = Worker.new
         counter = 0
+
         Thread.new do
           worker.run_periodically(0.1) do
             counter += 1
           end
         end
+
         sleep 0.45
         assert_equal counter, 4
       end
@@ -41,6 +46,39 @@ module Librato
         # tolerate explicit nils
         worker = Worker.new(:timer => nil)
         assert_equal :sleep, worker.timer
+      end
+
+      def test_eventmachine_timer
+        worker = Worker.new(:timer => :eventmachine)
+        counter = 0
+
+        Thread.new do
+          EventMachine.run do
+            worker.run_periodically(0.1) do
+              counter += 1
+            end
+          end
+        end
+
+        sleep 0.45
+        assert_equal counter, 4
+      end
+
+      def test_em_synchrony_timer
+        worker = Worker.new(:timer => :synchrony)
+        counter = 0
+
+        Thread.new do
+          EM.synchrony do
+            worker.run_periodically(0.1) do
+              counter += 1
+            end
+            EventMachine.stop
+          end
+        end
+
+        sleep 0.45
+        assert_equal counter, 4
       end
 
     end
