@@ -19,7 +19,7 @@ module Librato
         end
 
         sleep 0.45
-        assert_equal counter, 4
+        assert_in_delta 4, counter, 1
 
         worker.stop!
         thread.join
@@ -65,7 +65,7 @@ module Librato
         end
 
         sleep 0.45
-        assert_equal counter, 4
+        assert_in_delta 4, counter, 1
         thread.join
       end
 
@@ -83,7 +83,7 @@ module Librato
         end
 
         sleep 0.45
-        assert_equal counter, 4
+        assert_in_delta 4, counter, 1
         Thread.kill(thread)
       end
 
