@@ -14,9 +14,9 @@ gem 'pry'
 # benchmarking
 gem 'benchmark_suite'
 
-# servers for testing
-# gem 'thin'
-# gem 'unicorn'
-
 # resolve load order issue
 gem 'rake'
+
+# used for variable timer modes
+gem 'eventmachine'
+gem 'em-synchrony'
