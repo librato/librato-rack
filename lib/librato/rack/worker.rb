@@ -44,6 +44,12 @@ module Librato
         end
       end
 
+      # stop worker loop at the beginning of the next round
+      # of execution
+      def stop!
+        @interrupt = true
+      end
+
       private
 
       # run continuous loop executing every <period>, will start
