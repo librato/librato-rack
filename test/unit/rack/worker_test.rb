@@ -20,7 +20,9 @@ module Librato
 
         sleep 0.45
         assert_equal counter, 4
-        Thread.kill(thread)
+
+        worker.stop!
+        thread.join
       end
 
       def test_start_time
@@ -58,12 +60,13 @@ module Librato
             worker.run_periodically(0.1) do
               counter += 1
             end
+            EM.add_timer(0.6) { worker.stop!; EM.stop }
           end
         end
 
         sleep 0.45
         assert_equal counter, 4
-        Thread.kill(thread)
+        thread.join
       end
 
       def test_em_synchrony_timer
