@@ -49,6 +49,7 @@ By default you can use `LIBRATO_USER` and `LIBRATO_TOKEN` to pass your account d
 
 * `LIBRATO_SOURCE` - the default source to use for submitted metrics. If this is not set, hostname of the executing machine will be the default source
 * `LIBRATO_PREFIX` - a prefix which will be prepended to all metric names
+* `LIBRATO_AUTORUN` - set to `'0'` to prevent the reporter from starting, useful if you don't want `librato-rack` to start under certain circumstances
 * `LIBRATO_LOG_LEVEL` - see logging section for more
 * `LIBRATO_EVENT_MODE` - use with evented apps, see "Use with EventMachine" below
 

@@ -12,8 +12,8 @@ module Librato
     class Configuration
       EVENT_MODES = [:eventmachine, :synchrony]
 
-      attr_accessor :user, :token, :api_endpoint, :tracker, :source_pids,
-                    :log_level, :flush_interval, :log_target,
+      attr_accessor :user, :token, :autorun, :api_endpoint, :tracker,
+                    :source_pids, :log_level, :flush_interval, :log_target,
                     :disable_rack_metrics
       attr_reader :prefix, :source, :deprecations
 
@@ -29,6 +29,7 @@ module Librato
         # check environment
         self.user = ENV['LIBRATO_USER'] || ENV['LIBRATO_METRICS_USER']
         self.token = ENV['LIBRATO_TOKEN'] || ENV['LIBRATO_METRICS_TOKEN']
+        self.autorun = detect_autorun
         self.prefix = ENV['LIBRATO_PREFIX'] || ENV['LIBRATO_METRICS_PREFIX']
         self.source = ENV['LIBRATO_SOURCE'] || ENV['LIBRATO_METRICS_SOURCE']
         self.log_level = ENV['LIBRATO_LOG_LEVEL'] || :info
@@ -90,6 +91,17 @@ module Librato
 
       def deprecate(message)
         @deprecations << message
+      end
+
+      def detect_autorun
+        case ENV['LIBRATO_AUTORUN']
+        when '0', 'FALSE'
+          false
+        when '1', 'TRUE'
+          true
+        else
+          nil
+        end
       end
 
     end
