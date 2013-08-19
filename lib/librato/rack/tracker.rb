@@ -152,10 +152,13 @@ module Librato
       end
 
       def user_agent
-        ua_chunks = []
-        ua_chunks << "librato-rack/#{Librato::Rack::VERSION}"
+        ua_chunks = [version_string]
         ua_chunks << "(#{ruby_engine}; #{RUBY_VERSION}p#{RUBY_PATCHLEVEL}; #{RUBY_PLATFORM})"
         ua_chunks.join(' ')
+      end
+
+      def version_string
+        "librato-rack/#{Librato::Rack::VERSION}"
       end
     end
   end
