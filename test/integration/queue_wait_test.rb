@@ -22,7 +22,7 @@ class QueueWaitTest < Minitest::Test
     # puts "milli: #{aggregate["rack.request.queue.time"].inspect}"
     assert_equal 1, aggregate["rack.request.queue.time"][:count],
       'should track total queue time'
-    assert_in_delta 5, aggregate["rack.request.queue.time"][:sum], 3
+    assert_in_delta 5, aggregate["rack.request.queue.time"][:sum], 4
   end
 
   def test_microseconds
@@ -31,7 +31,7 @@ class QueueWaitTest < Minitest::Test
     # puts "micro: #{aggregate["rack.request.queue.time"].inspect}"
     assert_equal 1, aggregate["rack.request.queue.time"][:count],
       'should track total queue time'
-    assert_in_delta 10, aggregate["rack.request.queue.time"][:sum], 3
+    assert_in_delta 10, aggregate["rack.request.queue.time"][:sum], 4
   end
 
   def test_queue_start
@@ -40,7 +40,7 @@ class QueueWaitTest < Minitest::Test
     # puts "micro: #{aggregate["rack.request.queue.time"].inspect}"
     assert_equal 1, aggregate["rack.request.queue.time"][:count],
       'should track total queue time'
-    assert_in_delta 15, aggregate["rack.request.queue.time"][:sum], 3
+    assert_in_delta 15, aggregate["rack.request.queue.time"][:sum], 4
   end
 
   def test_with_t
@@ -49,7 +49,7 @@ class QueueWaitTest < Minitest::Test
     # puts "micro: #{aggregate["rack.request.queue.time"].inspect}"
     assert_equal 1, aggregate["rack.request.queue.time"][:count],
       'should track total queue time'
-    assert_in_delta 20, aggregate["rack.request.queue.time"][:sum], 3
+    assert_in_delta 20, aggregate["rack.request.queue.time"][:sum], 4
   end
 
   private
