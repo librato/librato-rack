@@ -32,6 +32,20 @@ module Librato
         assert_equal true, new_tracker.send(:should_start?)
       end
 
+      def test_autorun_can_prevent_startup
+        ENV['LIBRATO_AUTORUN']='0'
+        config = Configuration.new
+        config.user, config.token = 'foo', 'bar'
+        @buffer = StringIO.new
+        config.log_target = @buffer
+        tracker = Tracker.new(config)
+
+        assert_equal false, tracker.send(:should_start?),
+          'should not start if autorun set to 0'
+
+        ENV.delete('LIBRATO_AUTORUN')
+      end
+
       private
 
       def buffer_lines
