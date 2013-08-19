@@ -26,15 +26,7 @@ module Librato
         @listeners = []
         @deprecations = []
 
-        # check environment
-        self.user = ENV['LIBRATO_USER'] || ENV['LIBRATO_METRICS_USER']
-        self.token = ENV['LIBRATO_TOKEN'] || ENV['LIBRATO_METRICS_TOKEN']
-        self.autorun = detect_autorun
-        self.prefix = ENV['LIBRATO_PREFIX'] || ENV['LIBRATO_METRICS_PREFIX']
-        self.source = ENV['LIBRATO_SOURCE'] || ENV['LIBRATO_METRICS_SOURCE']
-        self.log_level = ENV['LIBRATO_LOG_LEVEL'] || :info
-        self.event_mode = ENV['LIBRATO_EVENT_MODE']
-        check_deprecations
+        load_configuration
       end
 
       def event_mode
@@ -55,6 +47,19 @@ module Librato
 
       def explicit_source?
         !!@explicit_source
+      end
+
+      # check environment variables and capture current state
+      # for configuration
+      def load_configuration
+        self.user = ENV['LIBRATO_USER'] || ENV['LIBRATO_METRICS_USER']
+        self.token = ENV['LIBRATO_TOKEN'] || ENV['LIBRATO_METRICS_TOKEN']
+        self.autorun = detect_autorun
+        self.prefix = ENV['LIBRATO_PREFIX'] || ENV['LIBRATO_METRICS_PREFIX']
+        self.source = ENV['LIBRATO_SOURCE'] || ENV['LIBRATO_METRICS_SOURCE']
+        self.log_level = ENV['LIBRATO_LOG_LEVEL'] || :info
+        self.event_mode = ENV['LIBRATO_EVENT_MODE']
+        check_deprecations
       end
 
       def prefix=(prefix)
