@@ -148,6 +148,12 @@ Can also be written as:
 
 Symbols can be used interchangeably with strings for metric names.
 
+## Use with Background Workers / Cron Jobs
+
+`librato-rack` is designed to run within a long-running process and report periodically. Intermittently running rake tasks and most background job tools (delayed job, resque, queue_classic) don't run long enough for this to work.
+
+Never fear, [we have some guidelines](https://github.com/librato/librato-rails/wiki/Monitoring-Background-Workers) for how to instrument your workers properly.
+
 ## Cross-Process Aggregation
 
 `librato-rack` submits measurements back to the Librato platform on a _per-process_ basis. By default these measurements are then combined into a single measurement per source (default is your hostname) before persisting the data.
