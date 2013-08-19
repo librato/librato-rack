@@ -1,3 +1,13 @@
+### Version 0.4.0
+* Add HTTP method (GET, POST) metrics
+* Add log buffering support
+* Ensure all options passed to a grouped increment are respected
+* LIBRATO_AUTORUN can be used to prevent startup
+* Add ability to interrupt reporter process
+* Start reporting deprecations for old config methods
+* Add docs for best practices for background workers
+* Other documentation improvements
+
 ### Version 0.3.0
 * Add experimental support for EventMachine and EMSynchrony (Balwant K)
 * Start testing suite against jruby/rbx
