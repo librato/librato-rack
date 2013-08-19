@@ -135,16 +135,16 @@ module Librato
         if !config.user || !config.token
           # don't show this unless we're debugging, expected behavior
           log :debug, 'halting: credentials not present.'
-          false
+        elsif config.autorun == false
+          log :debug, 'halting: LIBRATO_AUTORUN disabled startup'
         elsif qualified_source !~ SOURCE_REGEX
           log :warn, "halting: '#{qualified_source}' is an invalid source name."
-          false
         elsif on_heroku && !config.explicit_source?
           log :warn, 'halting: source must be provided in configuration.'
-          false
         else
-          true
+          return true
         end
+        false
       end
 
       def source
