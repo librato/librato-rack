@@ -65,6 +65,25 @@ module Librato
         config.source_pids ? "#{source}.#{$$}" : source
       end
 
+      # given current state, should the tracker start a reporter thread?
+      def should_start?
+        return false if @pid_checked == $$ # only check once per process
+        @pid_checked = $$
+        if !config.user || !config.token
+          # don't show this unless we're debugging, expected behavior
+          log :debug, 'halting: credentials not present.'
+        elsif config.autorun == false
+          log :debug, 'halting: LIBRATO_AUTORUN disabled startup'
+        elsif qualified_source !~ SOURCE_REGEX
+          log :warn, "halting: '#{qualified_source}' is an invalid source name."
+        elsif on_heroku && !config.explicit_source?
+          log :warn, 'halting: source must be provided in configuration.'
+        else
+          return true
+        end
+        false
+      end
+
       # change output stream for logging
       def update_log_target(target)
         logger.outlet = target
@@ -127,24 +146,6 @@ module Librato
       def ruby_engine
         return RUBY_ENGINE if Object.constants.include?(:RUBY_ENGINE)
         RUBY_DESCRIPTION.split[0]
-      end
-
-      def should_start?
-        return false if @pid_checked == $$ # only check once per process
-        @pid_checked = $$
-        if !config.user || !config.token
-          # don't show this unless we're debugging, expected behavior
-          log :debug, 'halting: credentials not present.'
-        elsif config.autorun == false
-          log :debug, 'halting: LIBRATO_AUTORUN disabled startup'
-        elsif qualified_source !~ SOURCE_REGEX
-          log :warn, "halting: '#{qualified_source}' is an invalid source name."
-        elsif on_heroku && !config.explicit_source?
-          log :warn, 'halting: source must be provided in configuration.'
-        else
-          return true
-        end
-        false
       end
 
       def source
