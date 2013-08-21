@@ -1,3 +1,8 @@
+### Version 0.4.1
+* Support a pre-configured tracker object
+* Make log-prefix configurable
+* Break pid-locking out of startup checks
+
 ### Version 0.4.0
 * Add HTTP method (GET, POST) metrics
 * Add log buffering support
