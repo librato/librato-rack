@@ -41,14 +41,14 @@ module Librato
 
     def initialize(app, options={})
       old_style = false
-      if options.respond_to?(:tracker) # old-style single argument
+      if options.respond_to?(:log_level) # old-style single argument
         config = options
         old_style = true
       else
         config = options.fetch(:config, Configuration.new)
       end
       @app, @config = app, config
-      @tracker = Tracker.new(@config)
+      @tracker = @config.tracker || Tracker.new(@config)
       Librato.register_tracker(@tracker) # create global reference
 
       if old_style
