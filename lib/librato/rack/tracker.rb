@@ -25,7 +25,7 @@ module Librato
       # thread will not pass with the fork
       def check_worker
         return if @worker # already running
-        return if !should_start?
+        return unless start_worker?
         log(:debug) { "config: #{config.dump}" }
         @pid = $$
         log(:debug) { ">> starting up worker for pid #{@pid}..." }
@@ -63,6 +63,23 @@ module Librato
       # source including process pid if indicated
       def qualified_source
         config.source_pids ? "#{source}.#{$$}" : source
+      end
+
+      # given current state, should the tracker start a reporter thread?
+      def should_start?
+        if !config.user || !config.token
+          # don't show this unless we're debugging, expected behavior
+          log :debug, 'halting: credentials not present.'
+        elsif config.autorun == false
+          log :debug, 'halting: LIBRATO_AUTORUN disabled startup'
+        elsif qualified_source !~ SOURCE_REGEX
+          log :warn, "halting: '#{qualified_source}' is an invalid source name."
+        elsif on_heroku && !config.explicit_source?
+          log :warn, 'halting: source must be provided in configuration.'
+        else
+          return true
+        end
+        false
       end
 
       # change output stream for logging
@@ -110,6 +127,7 @@ module Librato
         return @logger if @logger
         @logger = Logger.new(config.log_target)
         @logger.log_level = config.log_level
+        @logger.prefix    = config.log_prefix
         @logger
       end
 
@@ -129,33 +147,30 @@ module Librato
         RUBY_DESCRIPTION.split[0]
       end
 
-      def should_start?
-        return false if @pid_checked == $$ # only check once per process
-        @pid_checked = $$
-        if !config.user || !config.token
-          # don't show this unless we're debugging, expected behavior
-          log :debug, 'halting: credentials not present.'
-        elsif config.autorun == false
-          log :debug, 'halting: LIBRATO_AUTORUN disabled startup'
-        elsif qualified_source !~ SOURCE_REGEX
-          log :warn, "halting: '#{qualified_source}' is an invalid source name."
-        elsif on_heroku && !config.explicit_source?
-          log :warn, 'halting: source must be provided in configuration.'
-        else
-          return true
-        end
-        false
-      end
-
       def source
         @source ||= (config.source || Socket.gethostname).downcase
       end
 
+      # should we spin up a worker? wrap this in a process check
+      # so we only actually check once per process. this allows us
+      # to check again if the process forks.
+      def start_worker?
+        if @pid_checked == $$
+          false
+        else
+          @pid_checked = $$
+          should_start?
+        end
+      end
+
       def user_agent
-        ua_chunks = []
-        ua_chunks << "librato-rack/#{Librato::Rack::VERSION}"
+        ua_chunks = [version_string]
         ua_chunks << "(#{ruby_engine}; #{RUBY_VERSION}p#{RUBY_PATCHLEVEL}; #{RUBY_PLATFORM})"
         ua_chunks.join(' ')
+      end
+
+      def version_string
+        "librato-rack/#{Librato::Rack::VERSION}"
       end
     end
   end

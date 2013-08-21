@@ -14,7 +14,7 @@ module Librato
       def initialize(outlet=nil)
         @buffer = []
         self.outlet = outlet
-        self.prefix = '[librato-rack] '
+        self.prefix = ''
       end
 
       # @example Simple logging

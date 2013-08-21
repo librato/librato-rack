@@ -72,7 +72,7 @@ module Librato
       end
 
       def test_log_prefix
-        assert_equal '[librato-rack] ', @logger.prefix
+        assert_equal '', @logger.prefix
 
         @logger.prefix = '[test prefix] '
         @logger.log :error, 'an error message'
