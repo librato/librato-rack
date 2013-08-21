@@ -25,7 +25,7 @@ module Librato
       # thread will not pass with the fork
       def check_worker
         return if @worker # already running
-        return if !should_start?
+        return unless start_worker?
         log(:debug) { "config: #{config.dump}" }
         @pid = $$
         log(:debug) { ">> starting up worker for pid #{@pid}..." }
@@ -67,8 +67,6 @@ module Librato
 
       # given current state, should the tracker start a reporter thread?
       def should_start?
-        return false if @pid_checked == $$ # only check once per process
-        @pid_checked = $$
         if !config.user || !config.token
           # don't show this unless we're debugging, expected behavior
           log :debug, 'halting: credentials not present.'
@@ -150,6 +148,18 @@ module Librato
 
       def source
         @source ||= (config.source || Socket.gethostname).downcase
+      end
+
+      # should we spin up a worker? wrap this in a process check
+      # so we only actually check once per process. this allows us
+      # to check again if the process forks.
+      def start_worker?
+        if @pid_checked == $$
+          false
+        else
+          @pid_checked = $$
+          should_start?
+        end
       end
 
       def user_agent
