@@ -127,6 +127,7 @@ module Librato
         return @logger if @logger
         @logger = Logger.new(config.log_target)
         @logger.log_level = config.log_level
+        @logger.prefix    = config.log_prefix
         @logger
       end
 

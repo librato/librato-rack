@@ -13,8 +13,8 @@ module Librato
       EVENT_MODES = [:eventmachine, :synchrony]
 
       attr_accessor :user, :token, :autorun, :api_endpoint, :tracker,
-                    :source_pids, :log_level, :flush_interval, :log_target,
-                    :disable_rack_metrics
+                    :source_pids, :log_level, :log_prefix, :log_target,
+                    :disable_rack_metrics, :flush_interval
       attr_reader :prefix, :source, :deprecations
 
       def initialize
@@ -23,6 +23,7 @@ module Librato
         self.api_endpoint = Librato::Metrics.api_endpoint
         self.flush_interval = 60
         self.source_pids = false
+        self.log_prefix = '[librato-rack] '
         @listeners = []
         @deprecations = []
 
