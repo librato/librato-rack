@@ -17,12 +17,11 @@ Gem::Specification.new do |s|
   s.files = Dir["{app,config,db,lib}/**/*"] + ["LICENSE", "Rakefile", "README.md", "CHANGELOG.md"]
   s.test_files = Dir["test/**/*"]
 
-  s.add_dependency "librato-metrics", "~> 1.1.0"
+  s.add_dependency "librato-metrics", "~> 1.1.1"
   s.add_development_dependency "minitest"
 
-  signing_key = File.expand_path("~/.gem/librato-private_key.pem")
-  if File.exists?(signing_key)
-    s.signing_key = signing_key
-    s.cert_chain = ["certs/librato-public.pem"]
+  s.cert_chain = ["certs/librato-public.pem"]
+  if ENV['GEM_SIGNING_KEY']
+    s.signing_key = ENV['GEM_SIGNING_KEY']
   end
 end
