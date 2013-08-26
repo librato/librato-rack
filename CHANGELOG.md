@@ -1,3 +1,6 @@
+### Version 0.4.2
+* Move gem sign code to rake task, fixes bug bundling in some environments
+
 ### Version 0.4.1
 * Support a pre-configured tracker object
 * Make log-prefix configurable
