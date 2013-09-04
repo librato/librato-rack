@@ -103,13 +103,13 @@ module Librato
     def record_header_metrics(env)
       queue_start = env['HTTP_X_REQUEST_START'] || env['HTTP_X_QUEUE_START']
       if queue_start
-        queue_start = queue_start.to_s.gsub('t=', '').to_i
-        case queue_start.to_s.length
+        queue_start = queue_start.to_s.sub('t=', '').sub('.', '')
+        case queue_start.length
         when 16 # microseconds
-          wait = ((Time.now.to_f * 1000000).to_i - queue_start) / 1000.0
+          wait = ((Time.now.to_f * 1000000).to_i - queue_start.to_i) / 1000.0
           tracker.timing 'rack.request.queue.time', wait
         when 13 # milliseconds
-          wait = (Time.now.to_f * 1000).to_i - queue_start
+          wait = (Time.now.to_f * 1000).to_i - queue_start.to_i
           tracker.timing 'rack.request.queue.time', wait
         end
       end
