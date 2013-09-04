@@ -52,6 +52,14 @@ class QueueWaitTest < Minitest::Test
     assert_in_delta 20, aggregate["rack.request.queue.time"][:sum], 4
   end
 
+  def test_with_period
+    get '/with_period'
+
+    assert_equal 1, aggregate["rack.request.queue.time"][:count],
+      'should track total queue time'
+    assert_in_delta 25, aggregate["rack.request.queue.time"][:sum], 4
+  end
+
   private
 
   def aggregate
