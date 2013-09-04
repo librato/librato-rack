@@ -1,3 +1,6 @@
+### Version 0.4.3
+* Update queue wait support to tolerate float-style timestamps
+
 ### Version 0.4.2
 * Move gem sign code to rake task, fixes bug bundling in some environments
 
