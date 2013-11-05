@@ -1,3 +1,6 @@
+### Version 0.4.4
+* Relax version constraint for librato-metrics
+
 ### Version 0.4.3
 * Update queue wait support to tolerate float-style timestamps
 
