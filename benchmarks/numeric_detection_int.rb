@@ -1,45 +1,48 @@
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'benchmark/ips'
 
+int = '220000'
+bad_int = '22.to.2'
+
 Benchmark.ips do |x|
   x.report('cast') do
-    Integer('220000') rescue false
+    Integer(int) rescue false
   end
 
   x.report('cast fail') do
-    Integer('22.to.2') rescue false
+    Integer(bad_int) rescue false
   end
 
   x.report('to_s') do
-    '220000'.to_i.to_s == '220000'
+    int.to_i.to_s == int
   end
 
   x.report('to_s fail') do
-    '22.to.2'.to_i.to_s == '22.to.2'
+    bad_int.to_i.to_s == bad_int
   end
 
   x.report('regexp') do
-    '220000' =~ /^\d+$/
+    int =~ /^\d+$/
   end
 
   x.report('regexp fail') do
-    '22.to.2' =~ /^\d+$/
+    bad_int =~ /^\d+$/
   end
 end
 
 # 1.9.3-p448
 #
 # Calculating -------------------------------------
-#                 cast     49057 i/100ms
-#            cast fail      5077 i/100ms
-#                 to_s     38512 i/100ms
-#            to_s fail     40598 i/100ms
-#               regexp     39031 i/100ms
-#          regexp fail     35803 i/100ms
+#                 cast     57485 i/100ms
+#            cast fail      5549 i/100ms
+#                 to_s     47509 i/100ms
+#            to_s fail     50573 i/100ms
+#               regexp     45187 i/100ms
+#          regexp fail     42566 i/100ms
 # -------------------------------------------------
-#                 cast  1769753.6 (±5.4%) i/s -    8830260 in   5.008356s
-#            cast fail    59323.0 (±7.5%) i/s -     299543 in   5.081630s
-#                 to_s   910725.9 (±6.2%) i/s -    4544416 in   5.012002s
-#            to_s fail  1061915.4 (±4.8%) i/s -    5318338 in   5.022866s
-#               regexp  1171096.1 (±7.6%) i/s -    5815619 in   5.005146s
-#          regexp fail  1001235.6 (±5.3%) i/s -    5012420 in   5.024768s
+#                 cast  2353703.4 (±4.9%) i/s -   11726940 in   4.998270s
+#            cast fail    65590.2 (±4.6%) i/s -     327391 in   5.003511s
+#                 to_s  1420892.0 (±6.8%) i/s -    7078841 in   5.011462s
+#            to_s fail  1717948.8 (±6.0%) i/s -    8546837 in   4.998672s
+#               regexp  1525729.9 (±7.0%) i/s -    7591416 in   5.007105s
+#          regexp fail  1154461.1 (±5.5%) i/s -    5788976 in   5.035311s
