@@ -58,6 +58,7 @@ module Librato
         log(:trace) { "flushed pid #{@pid} in #{(Time.now - start)*1000.to_f}ms" }
       rescue Exception => error
         log :error, "submission failed permanently: #{error}"
+        log(:trace) { error.backtrace.join("\n") }
       end
 
       # source including process pid if indicated
