@@ -20,3 +20,8 @@ gem 'rake'
 # used for variable timer modes
 gem 'eventmachine'
 gem 'em-synchrony'
+
+platforms :rbx do
+  gem 'rubysl', '~> 2.0'
+  gem 'rubinius-developer_tools'
+end
