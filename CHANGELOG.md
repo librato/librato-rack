@@ -1,3 +1,6 @@
+### Version 0.4.5
+* Add #start! to tracker
+
 ### Version 0.4.4
 * Relax version constraint for librato-metrics
 
