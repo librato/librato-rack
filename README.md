@@ -155,6 +155,8 @@ Symbols can be used interchangeably with strings for metric names.
 
 Never fear, [we have some guidelines](https://github.com/librato/librato-rails/wiki/Monitoring-Background-Workers) for how to instrument your workers properly.
 
+If you are using `librato-rack` with sidekiq, [see these notes about setup](brato/librato-rails/wiki/Monitoring-Background-Workers#monitoring-long-running-threaded-workers-sidekiq-etc).
+
 ## Cross-Process Aggregation
 
 `librato-rack` submits measurements back to the Librato platform on a _per-process_ basis. By default these measurements are then combined into a single measurement per source (default is your hostname) before persisting the data.
@@ -185,4 +187,4 @@ If you are debugging setup locally you can set `flush_interval` to something sho
 
 ## Copyright
 
-Copyright (c) 2013 [Librato Inc.](http://librato.com) See LICENSE for details.
+Copyright (c) 2013-2014 [Librato Inc.](http://librato.com) See LICENSE for details.
