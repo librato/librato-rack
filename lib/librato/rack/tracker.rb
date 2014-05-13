@@ -19,10 +19,9 @@ module Librato
         config.register_listener(collector)
       end
 
-      # start worker thread, one per process.
-      # if this process has been forked from an one with an active
-      # worker thread we don't need to worry about cleanup, the worker
-      # thread will not pass with the fork
+      # check to see if we should start a worker for this process.
+      # if you are using this externally, use #start! instead as this
+      # method may change
       def check_worker
         return if @worker # already running
         return unless start_worker?
@@ -30,7 +29,7 @@ module Librato
         @pid = $$
         log(:debug) { ">> starting up worker for pid #{@pid}..." }
 
-        @worker = Worker.new(:timer => config.event_mode)
+        @worker = Worker.new(timer: config.event_mode)
         @worker.run_periodically(config.flush_interval) do
           flush
         end
@@ -80,6 +79,14 @@ module Librato
           return true
         end
         false
+      end
+
+      # start worker thread, one per process.
+      # if this process has been forked from an one with an active
+      # worker thread we don't need to worry about cleanup, the worker
+      # thread will not pass with the fork
+      def start!
+        check_worker if should_start?
       end
 
       # change output stream for logging
