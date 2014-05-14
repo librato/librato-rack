@@ -155,7 +155,7 @@ Symbols can be used interchangeably with strings for metric names.
 
 Never fear, [we have some guidelines](https://github.com/librato/librato-rails/wiki/Monitoring-Background-Workers) for how to instrument your workers properly.
 
-If you are using `librato-rack` with sidekiq, [see these notes about setup](brato/librato-rails/wiki/Monitoring-Background-Workers#monitoring-long-running-threaded-workers-sidekiq-etc).
+If you are using `librato-rack` with sidekiq, [see these notes about setup](https://github.com/librato/librato-rails/wiki/Monitoring-Background-Workers#monitoring-long-running-threaded-workers-sidekiq-etc).
 
 ## Cross-Process Aggregation
 
