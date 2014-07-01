@@ -64,7 +64,7 @@ If you want to do more complex configuration, use your own environment variables
 
     use Librato::Rack, :config => config
 
-See the configuration class for all available options.
+See the [configuration class](https://github.com/librato/librato-rack/blob/master/lib/librato/rack/configuration.rb) for all available options.
 
 ##### Running on Heroku
 
