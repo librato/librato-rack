@@ -27,17 +27,17 @@ class TrackerRemoteTest < Minitest::Test
     end
 
     def test_flush_counters
-      tracker.increment :foo                              # simple
-      tracker.increment :bar, 2                           # specified
-      tracker.increment :foo                              # multincrement
-      tracker.increment :foo, :source => 'baz', :by => 3  # custom source
+      tracker.increment :foo                        # simple
+      tracker.increment :bar, 2                     # specified
+      tracker.increment :foo                        # multincrement
+      tracker.increment :foo, source: 'baz', by: 3  # custom source
       tracker.flush
 
       metric_names = client.list.map { |m| m['name'] }
       assert metric_names.include?('foo'), 'foo should be present'
       assert metric_names.include?('bar'), 'bar should be present'
 
-      foo = client.fetch 'foo', :count => 10
+      foo = client.fetch 'foo', count: 10
       assert_equal 1, foo[source].length
       assert_equal 2, foo[source][0]['value']
 
@@ -45,14 +45,14 @@ class TrackerRemoteTest < Minitest::Test
       assert_equal 1, foo['baz'].length
       assert_equal 3, foo['baz'][0]['value']
 
-      bar = client.fetch 'bar', :count => 10
+      bar = client.fetch 'bar', count: 10
       assert_equal 1, bar[source].length
       assert_equal 2, bar[source][0]['value']
     end
 
     def test_counter_persistent_through_flush
       tracker.increment 'knightrider'
-      tracker.increment 'badguys', :sporadic => true
+      tracker.increment 'badguys', sporadic: true
       assert_equal 1, collector.counters['knightrider']
       assert_equal 1, collector.counters['badguys']
 
@@ -65,7 +65,7 @@ class TrackerRemoteTest < Minitest::Test
       tracker.timing  'request.time.total', 122.1
       tracker.measure 'items_bought', 20
       tracker.timing  'request.time.total', 81.3
-      tracker.timing  'jobs.queued', 5, :source => 'worker.3'
+      tracker.timing  'jobs.queued', 5, source: 'worker.3'
       tracker.flush
 
       metric_names = client.list.map { |m| m['name'] }
@@ -148,18 +148,18 @@ class TrackerRemoteTest < Minitest::Test
       assert metric_names.include?('foo')
 
       # should have saved values for foo
-      foo = client.fetch :foo, :count => 5
+      foo = client.fetch :foo, count: 5
       assert_equal 1.0, foo[source][0]["value"]
     end
 
     def test_flush_handles_invalid_sources_names
-      tracker.increment :foo, :source => 'atreides'         # valid
-      tracker.increment :bar, :source => 'glébnöst'         # invalid
-      tracker.measure 'baz', 2.25, :source => 'b/l/ak/nok'  # invalid
+      tracker.increment :foo, source: 'atreides'         # valid
+      tracker.increment :bar, source: 'glébnöst'         # invalid
+      tracker.measure 'baz', 2.25, source: 'b/l/ak/nok'  # invalid
       tracker.flush
 
       # should have saved values for foo
-      foo = client.fetch :foo, :count => 5
+      foo = client.fetch :foo, count: 5
       assert_equal 1.0, foo['atreides'][0]["value"]
     end
 
