@@ -65,6 +65,8 @@ module Librato
       end
 
       # current local instrumentation to be sent on next flush
+      # this is for debugging, don't call rapidly in production as it
+      # may introduce latency
       def queued
         build_flush_queue(collector, true).queued
       end
