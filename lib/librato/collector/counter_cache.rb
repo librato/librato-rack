@@ -44,13 +44,13 @@ module Librato
       end
 
       # transfer all measurements to queue and reset internal status
-      def flush_to(queue)
+      def flush_to(queue, opts={})
         counts = nil
         @lock.synchronize do
           # work off of a duplicate data set so we block for
           # as little time as possible
           counts = @cache.dup
-          reset_cache
+          reset_cache unless opts[:preserve]
         end
         counts.each do |metric, value|
           metric, source = metric.split(SEPARATOR)

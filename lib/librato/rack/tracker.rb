@@ -64,6 +64,13 @@ module Librato
         config.source_pids ? "#{source}.#{$$}" : source
       end
 
+      # current local instrumentation to be sent on next flush
+      # this is for debugging, don't call rapidly in production as it
+      # may introduce latency
+      def queued
+        build_flush_queue(collector, true).queued
+      end
+
       # given current state, should the tracker start a reporter thread?
       def should_start?
         if !config.user || !config.token
@@ -113,11 +120,11 @@ module Librato
         end
       end
 
-      def build_flush_queue(collector)
-        queue = ValidatingQueue.new( :client => client, :source => qualified_source,
-          :prefix => config.prefix, :skip_measurement_times => true )
+      def build_flush_queue(collector, preserve=false)
+        queue = ValidatingQueue.new( client: client, source: qualified_source,
+          prefix: config.prefix, skip_measurement_times: true )
         [collector.counters, collector.aggregate].each do |cache|
-          cache.flush_to(queue)
+          cache.flush_to(queue, preserve: preserve)
         end
         queue.add 'rack.processes' => 1
         trace_queued(queue.queued) #if should_log?(:trace)

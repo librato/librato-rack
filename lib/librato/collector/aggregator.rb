@@ -35,12 +35,12 @@ module Librato
       end
 
       # transfer all measurements to queue and reset internal status
-      def flush_to(queue)
+      def flush_to(queue, opts={})
         queued = nil
         @lock.synchronize do
           return if @cache.empty?
           queued = @cache.queued
-          @cache.clear
+          @cache.clear unless opts[:preserve]
         end
         queue.merge!(queued) if queued
       end
