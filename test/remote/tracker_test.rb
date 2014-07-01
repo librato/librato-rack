@@ -31,23 +31,23 @@ class TrackerRemoteTest < Minitest::Test
       tracker.increment :bar, 2                     # specified
       tracker.increment :foo                        # multincrement
       tracker.increment :foo, source: 'baz', by: 3  # custom source
+      @queued = tracker.queued
       tracker.flush
 
+      # metrics are SSA, so should exist but won't have measurements yet
       metric_names = client.list.map { |m| m['name'] }
       assert metric_names.include?('foo'), 'foo should be present'
       assert metric_names.include?('bar'), 'bar should be present'
 
-      foo = client.fetch 'foo', count: 10
-      assert_equal 1, foo[source].length
-      assert_equal 2, foo[source][0]['value']
+      # interogate queued payload for expected values
+      assert_equal source, @queued[:source]
+      assert_equal 2, queued('foo')
 
       # custom source
-      assert_equal 1, foo['baz'].length
-      assert_equal 3, foo['baz'][0]['value']
+      assert_equal 3, queued('foo', source: 'baz')
 
-      bar = client.fetch 'bar', count: 10
-      assert_equal 1, bar[source].length
-      assert_equal 2, bar[source][0]['value']
+      # different counter
+      assert_equal 2, queued('bar')
     end
 
     def test_counter_persistent_through_flush
@@ -66,23 +66,22 @@ class TrackerRemoteTest < Minitest::Test
       tracker.measure 'items_bought', 20
       tracker.timing  'request.time.total', 81.3
       tracker.timing  'jobs.queued', 5, source: 'worker.3'
+      @queued = tracker.queued
       tracker.flush
 
+      # metrics are SSA, so should exist but won't have measurements yet
       metric_names = client.list.map { |m| m['name'] }
       assert metric_names.include?('request.time.total'), 'request.time.total should be present'
       assert metric_names.include?('items_bought'), 'request.time.db should be present'
 
-      total = client.fetch 'request.time.total', :count => 10
-      assert_equal 2, total[source][0]['count']
-      assert_in_delta 203.4, total[source][0]['sum'], 0.1
+      assert_equal 2, queued('request.time.total')[:count]
+      assert_in_delta 203.4, queued('request.time.total')[:sum], 0.1
 
-      items = client.fetch 'items_bought', :count => 10
-      assert_equal 1, items[source][0]['count']
-      assert_in_delta 20, items[source][0]['sum'], 0.1
+      assert_equal 1, queued('items_bought')[:count]
+      assert_in_delta 20, queued('items_bought')[:sum], 0.1
 
-      jobs = client.fetch 'jobs.queued', :count => 10
-      assert_equal 1, jobs['worker.3'][0]['count']
-      assert_in_delta 5, jobs['worker.3'][0]['sum'], 0.1
+      assert_equal 1, queued('jobs.queued', source: 'worker.3')[:count]
+      assert_in_delta 5, queued('jobs.queued', source: 'worker.3')[:sum], 0.1
     end
 
     def test_flush_should_purge_measures_and_timings
@@ -90,77 +89,70 @@ class TrackerRemoteTest < Minitest::Test
       tracker.measure 'items_bought', 20
       tracker.flush
 
-      assert collector.aggregate.empty?, 'measures and timings should be cleared with flush'
+      assert collector.aggregate.empty?,
+        'measures and timings should be cleared with flush'
     end
-
-    # Disabled for now because we always send a running process
-    # count at a minimum
-    #
-    # def test_empty_flush_should_not_be_sent
-    #   tracker.flush
-    #   assert_equal [], client.list
-    # end
 
     def test_flush_respects_prefix
       config.prefix = 'testyprefix'
 
       tracker.timing 'mytime', 221.1
       tracker.increment 'mycount', 4
+      @queued = tracker.queued
       tracker.flush
 
       metric_names = client.list.map { |m| m['name'] }
-      assert metric_names.include?('testyprefix.mytime'), 'testyprefix.mytime should be present'
-      assert metric_names.include?('testyprefix.mycount'), 'testyprefix.mycount should be present'
+      assert metric_names.include?('testyprefix.mytime'),
+        'testyprefix.mytime should be present'
+      assert metric_names.include?('testyprefix.mycount'), '
+        testyprefix.mycount should be present'
 
-      mytime = client.fetch 'testyprefix.mytime', :count => 10
-      assert_equal 1, mytime[source][0]['count']
-
-      mycount = client.fetch 'testyprefix.mycount', :count => 10
-      assert_equal 4, mycount[source][0]['value']
+      assert_equal 1, queued('testyprefix.mytime')[:count]
+      assert_equal 4, queued('testyprefix.mycount')
     end
 
     def test_flush_recovers_from_failure
       # create a metric foo of counter type
-      client.submit :foo => {:type => :counter, :value => 12}
+      client.submit foo: {type: :counter, value: 12}
 
       # failing flush - submit a foo measurement as a gauge (type mismatch)
       tracker.measure :foo, 2.12
-      tracker.flush
 
-      foo = client.fetch :foo, :count => 10
-      assert_equal 1, foo['unassigned'].length
-      assert_nil foo[source] # shouldn't have been accepted
+      # won't be accepted
+      tracker.flush
 
       tracker.measure :boo, 2.12
       tracker.flush
 
-      boo = client.fetch :boo, :count => 10
-      assert_equal 2.12, boo[source][0]["value"]
+      metric_names = client.list.map { |m| m['name'] }
+      assert metric_names.include?('boo')
     end
 
     def test_flush_handles_invalid_metric_names
       tracker.increment :foo              # valid
       tracker.increment 'fübar'           # invalid
       tracker.measure 'fu/bar/baz', 12.1  # invalid
+      @queued = tracker.queued
       tracker.flush
 
       metric_names = client.list.map { |m| m['name'] }
       assert metric_names.include?('foo')
 
-      # should have saved values for foo
-      foo = client.fetch :foo, count: 5
-      assert_equal 1.0, foo[source][0]["value"]
+      # should be sending value for foo
+      assert_equal 1.0, queued('foo')
     end
 
     def test_flush_handles_invalid_sources_names
       tracker.increment :foo, source: 'atreides'         # valid
       tracker.increment :bar, source: 'glébnöst'         # invalid
       tracker.measure 'baz', 2.25, source: 'b/l/ak/nok'  # invalid
+      @queued = tracker.queued
       tracker.flush
 
-      # should have saved values for foo
-      foo = client.fetch :foo, count: 5
-      assert_equal 1.0, foo['atreides'][0]["value"]
+      metric_names = client.list.map { |m| m['name'] }
+      assert metric_names.include?('foo')
+
+      assert_equal 1.0, queued('foo', source: 'atreides')
     end
 
     private
@@ -179,6 +171,25 @@ class TrackerRemoteTest < Minitest::Test
 
     def config
       @tracker.config
+    end
+
+    # wrapper to make api format more easy to query
+    def queued(name, opts={})
+      raise "No queued found" unless @queued
+      source = opts[:source]  || nil
+
+      @queued[:gauges].each do |g|
+        if g[:name] == name.to_s && g[:source] == source
+          if g[:count]
+            # complex metric, return the whole hash
+            return g
+          else
+            # return just the value
+            return g[:value]
+          end
+        end
+      end
+      raise "No queued entry with '#{name}' found."
     end
 
     def source
