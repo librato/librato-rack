@@ -101,6 +101,10 @@ module Librato
         logger.outlet = target
       end
 
+      def suite_enabled?(suite)
+        config.suites.include?(suite.to_sym)
+      end
+
       private
 
       # access to client instance
