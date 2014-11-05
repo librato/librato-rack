@@ -85,6 +85,14 @@ module Librato
         fields
       end
 
+      def suites
+        @suites ||= if ENV.has_key?('LIBRATO_SUITES')
+          Suites.new(ENV['LIBRATO_SUITES'])
+        else
+          SuitesExcept.new(ENV['LIBRATO_SUITES_EXCEPT'])
+        end
+      end
+
       private
 
       def check_deprecations
@@ -110,6 +118,22 @@ module Librato
         end
       end
 
+      class Suites
+        attr_reader :fields
+        def initialize(value)
+          @fields = value.to_s.split(/\s*,\s*/).map(&:to_sym)
+        end
+
+        def include?(field)
+          fields.include?(field)
+        end
+      end
+
+      class SuitesExcept < Suites
+        def include?(field)
+          !fields.include?(field)
+        end
+      end
     end
   end
 end
