@@ -31,6 +31,35 @@ module Librato
         #assert Librato::Rails.explicit_source, 'source is explicit'
       end
 
+      def test_unconfigured_suites_are_on_by_default
+        config = Configuration.new
+        assert config.suites.include?(:abc)
+        assert config.suites.include?(:xyz)
+      end
+
+      def test_suites_configured_by_inclusion
+        ENV['LIBRATO_SUITES'] = 'abc, jkl,prq , xyz'
+        config = Configuration.new
+        [:abc, :jkl, :prq, :xyz].each do |suite|
+          assert config.suites.include?(suite), "expected '#{suite}' to be active"
+        end
+        refute config.suites.include?(:something_else)
+      ensure
+        ENV.delete('LIBRATO_SUITES')
+      end
+
+      def test_suites_configured_by_exclusion
+        ENV['LIBRATO_SUITES_EXCEPT'] = 'abc, jkl,prq , xyz'
+        config = Configuration.new
+
+        [:abc, :jkl, :prq, :xyz].each do |suite|
+          refute config.suites.include?(suite), "expected '#{suite}' to be inactive"
+        end
+        assert config.suites.include?(:something_else)
+      ensure
+        ENV.delete('LIBRATO_SUITES_EXCEPT')
+      end
+
       def test_legacy_env_variable_config
         ENV['LIBRATO_METRICS_USER'] = 'foo@bar.com'
         ENV['LIBRATO_METRICS_TOKEN'] = 'api_key'
