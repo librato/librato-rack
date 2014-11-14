@@ -88,7 +88,15 @@ module Librato
 
       def suites
         @suites ||= if ENV.has_key?('LIBRATO_SUITES')
-          Suites.new(ENV['LIBRATO_SUITES'])
+          suites = ENV['LIBRATO_SUITES']
+          case suites.downcase.strip
+          when 'all'
+            SuitesAll.new
+          when 'none'
+            SuitesNone.new
+          else
+            Suites.new(suites)
+          end
         else
           SuitesExcept.new(ENV['LIBRATO_SUITES_EXCEPT'])
         end
@@ -130,11 +138,24 @@ module Librato
         end
       end
 
+      class SuitesAll
+        def include?(value)
+          true
+        end
+      end
+
       class SuitesExcept < Suites
         def include?(field)
           !fields.include?(field)
         end
       end
+
+      class SuitesNone
+        def include?(value)
+          false
+        end
+      end
+
     end
   end
 end

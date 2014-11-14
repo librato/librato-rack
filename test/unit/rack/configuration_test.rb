@@ -60,6 +60,28 @@ module Librato
         ENV.delete('LIBRATO_SUITES_EXCEPT')
       end
 
+      def test_suites_all
+        ENV['LIBRATO_SUITES'] = 'all'
+        config = Configuration.new
+
+        [:foo, :bar, :baz].each do |suite|
+          assert config.suites.include?(suite), "expected '#{suite}' to be active"
+        end
+      ensure
+        ENV.delete('LIBRATO_SUITES')
+      end
+
+      def test_suites_none
+        ENV['LIBRATO_SUITES'] = 'NONE'
+        config = Configuration.new
+
+        [:foo, :bar, :baz].each do |suite|
+          refute config.suites.include?(suite), "expected '#{suite}' to be active"
+        end
+      ensure
+        ENV.delete('LIBRATO_SUITES')
+      end
+
       def test_legacy_env_variable_config
         ENV['LIBRATO_METRICS_USER'] = 'foo@bar.com'
         ENV['LIBRATO_METRICS_TOKEN'] = 'api_key'
