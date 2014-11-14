@@ -44,8 +44,6 @@ module Librato
           assert config.suites.include?(suite), "expected '#{suite}' to be active"
         end
         refute config.suites.include?(:something_else)
-      ensure
-        ENV.delete('LIBRATO_SUITES')
       end
 
       def test_suites_configured_by_exclusion
@@ -56,8 +54,6 @@ module Librato
           refute config.suites.include?(suite), "expected '#{suite}' to be inactive"
         end
         assert config.suites.include?(:something_else)
-      ensure
-        ENV.delete('LIBRATO_SUITES_EXCEPT')
       end
 
       def test_suites_all
@@ -67,8 +63,6 @@ module Librato
         [:foo, :bar, :baz].each do |suite|
           assert config.suites.include?(suite), "expected '#{suite}' to be active"
         end
-      ensure
-        ENV.delete('LIBRATO_SUITES')
       end
 
       def test_suites_none
@@ -78,8 +72,6 @@ module Librato
         [:foo, :bar, :baz].each do |suite|
           refute config.suites.include?(suite), "expected '#{suite}' to be active"
         end
-      ensure
-        ENV.delete('LIBRATO_SUITES')
       end
 
       def test_legacy_env_variable_config
@@ -146,9 +138,11 @@ module Librato
         ENV.delete('LIBRATO_PROXY')
         ENV.delete('LIBRATO_SOURCE')
         ENV.delete('LIBRATO_PREFIX')
+        ENV.delete('LIBRATO_SUITES')
+        ENV.delete('LIBRATO_SUITES_EXCEPT')
         ENV.delete('LIBRATO_LOG_LEVEL')
         ENV.delete('LIBRATO_EVENT_MODE')
-        # legacy
+        # legacy - deprecated
         ENV.delete('LIBRATO_METRICS_USER')
         ENV.delete('LIBRATO_METRICS_TOKEN')
         ENV.delete('LIBRATO_METRICS_SOURCE')
