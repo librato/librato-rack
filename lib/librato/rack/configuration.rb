@@ -145,8 +145,15 @@ module Librato
       end
 
       class SuitesExcept < Suites
+        DEFAULT_SUITES = [:rack]
+
+        def initialize(value)
+          super
+          @fields = DEFAULT_SUITES - @fields
+        end
+
         def include?(field)
-          !fields.include?(field)
+          fields.include?(field)
         end
       end
 

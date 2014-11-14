@@ -31,10 +31,18 @@ module Librato
         #assert Librato::Rails.explicit_source, 'source is explicit'
       end
 
-      def test_unconfigured_suites_are_on_by_default
+      def test_suites_defaults
         config = Configuration.new
-        assert config.suites.include?(:abc)
-        assert config.suites.include?(:xyz)
+        assert config.suites.include?(:rack), "should include 'rack' by default"
+        refute config.suites.include?(:foo), "should not include 'foo' by default"
+
+        ENV['LIBRATO_SUITES_EXCEPT'] = 'foo'
+        config = Configuration.new
+        assert config.suites.include?(:rack), "should include 'rack' if not excluded"
+
+        ENV['LIBRATO_SUITES_EXCEPT'] = 'rack'
+        config = Configuration.new
+        refute config.suites.include?(:rack), "should exclude 'rack'"
       end
 
       def test_suites_configured_by_inclusion
@@ -43,7 +51,7 @@ module Librato
         [:abc, :jkl, :prq, :xyz].each do |suite|
           assert config.suites.include?(suite), "expected '#{suite}' to be active"
         end
-        refute config.suites.include?(:something_else)
+        refute config.suites.include?(:something_else), 'should not include unspecified'
       end
 
       def test_suites_configured_by_exclusion
@@ -53,7 +61,6 @@ module Librato
         [:abc, :jkl, :prq, :xyz].each do |suite|
           refute config.suites.include?(suite), "expected '#{suite}' to be inactive"
         end
-        assert config.suites.include?(:something_else)
       end
 
       def test_suites_all
