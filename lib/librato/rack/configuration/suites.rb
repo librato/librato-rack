@@ -20,7 +20,7 @@ module Librato
       end
 
       class SuitesExcept < Suites
-        DEFAULT_SUITES = [:rack]
+        DEFAULT_SUITES = [:rack, :rack_method, :rack_status]
 
         def initialize(value)
           super

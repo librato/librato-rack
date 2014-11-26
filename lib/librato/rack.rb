@@ -117,22 +117,29 @@ module Librato
     def record_request_metrics(status, http_method, duration)
       return if config.disable_rack_metrics
       tracker.group 'rack.request' do |group|
-        group.increment 'total'
-        group.timing    'time', duration, percentile: 95
-        group.increment 'slow' if duration > 200.0
 
-        group.group 'status' do |s|
-          s.increment status
-          s.increment "#{status.to_s[0]}xx"
-
-          s.timing "#{status}.time", duration
-          s.timing "#{status.to_s[0]}xx.time", duration
+        if tracker.suite_enabled?(:rack)
+          group.increment 'total'
+          group.timing    'time', duration, percentile: 95
+          group.increment 'slow' if duration > 200.0
         end
 
-        group.group 'method' do |m|
-          http_method.downcase!
-          m.increment http_method
-          m.timing "#{http_method}.time", duration
+        if tracker.suite_enabled?(:rack_status)
+          group.group 'status' do |s|
+            s.increment status
+            s.increment "#{status.to_s[0]}xx"
+
+            s.timing "#{status}.time", duration
+            s.timing "#{status.to_s[0]}xx.time", duration
+          end
+        end
+
+        if tracker.suite_enabled?(:rack_method)
+          group.group 'method' do |m|
+            http_method.downcase!
+            m.increment http_method
+            m.timing "#{http_method}.time", duration
+          end
         end
       end
     end
