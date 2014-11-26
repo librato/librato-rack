@@ -3,14 +3,10 @@ require 'test_helper'
 module Librato
   class Rack
     class ConfigurationTest < Minitest::Test
+      include EnvironmentHelpers
 
-      def setup
-        clear_env_vars
-      end
-
-      def teardown
-        clear_env_vars
-      end
+      def setup;    clear_config_env_vars; end
+      def teardown; clear_config_env_vars; end
 
       def test_defaults
         config = Configuration.new
@@ -29,56 +25,6 @@ module Librato
         assert_equal 'source', config.source
         assert_equal 'http://localhost:8080', config.proxy
         #assert Librato::Rails.explicit_source, 'source is explicit'
-      end
-
-      def test_suites_defaults
-        config = Configuration.new
-        assert config.suites.include?(:rack), "should include 'rack' by default"
-        refute config.suites.include?(:foo), "should not include 'foo' by default"
-
-        ENV['LIBRATO_SUITES_EXCEPT'] = 'foo'
-        config = Configuration.new
-        assert config.suites.include?(:rack), "should include 'rack' if not excluded"
-
-        ENV['LIBRATO_SUITES_EXCEPT'] = 'rack'
-        config = Configuration.new
-        refute config.suites.include?(:rack), "should exclude 'rack'"
-      end
-
-      def test_suites_configured_by_inclusion
-        ENV['LIBRATO_SUITES'] = 'abc, jkl,prq , xyz'
-        config = Configuration.new
-        [:abc, :jkl, :prq, :xyz].each do |suite|
-          assert config.suites.include?(suite), "expected '#{suite}' to be active"
-        end
-        refute config.suites.include?(:something_else), 'should not include unspecified'
-      end
-
-      def test_suites_configured_by_exclusion
-        ENV['LIBRATO_SUITES_EXCEPT'] = 'abc, jkl,prq , xyz'
-        config = Configuration.new
-
-        [:abc, :jkl, :prq, :xyz].each do |suite|
-          refute config.suites.include?(suite), "expected '#{suite}' to be inactive"
-        end
-      end
-
-      def test_suites_all
-        ENV['LIBRATO_SUITES'] = 'all'
-        config = Configuration.new
-
-        [:foo, :bar, :baz].each do |suite|
-          assert config.suites.include?(suite), "expected '#{suite}' to be active"
-        end
-      end
-
-      def test_suites_none
-        ENV['LIBRATO_SUITES'] = 'NONE'
-        config = Configuration.new
-
-        [:foo, :bar, :baz].each do |suite|
-          refute config.suites.include?(suite), "expected '#{suite}' to be active"
-        end
       end
 
       def test_legacy_env_variable_config
@@ -138,24 +84,6 @@ module Librato
       end
 
       private
-
-      def clear_env_vars
-        ENV.delete('LIBRATO_USER')
-        ENV.delete('LIBRATO_TOKEN')
-        ENV.delete('LIBRATO_PROXY')
-        ENV.delete('LIBRATO_SOURCE')
-        ENV.delete('LIBRATO_PREFIX')
-        ENV.delete('LIBRATO_SUITES')
-        ENV.delete('LIBRATO_SUITES_EXCEPT')
-        ENV.delete('LIBRATO_LOG_LEVEL')
-        ENV.delete('LIBRATO_EVENT_MODE')
-        # legacy - deprecated
-        ENV.delete('LIBRATO_METRICS_USER')
-        ENV.delete('LIBRATO_METRICS_TOKEN')
-        ENV.delete('LIBRATO_METRICS_SOURCE')
-        # system
-        ENV.delete('http_proxy')
-      end
 
       def listener_object
         listener = Object.new
