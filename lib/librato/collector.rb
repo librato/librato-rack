@@ -43,6 +43,7 @@ module Librato
   end
 end
 
-require 'librato/collector/aggregator'
-require 'librato/collector/counter_cache'
-require 'librato/collector/group'
+require_relative 'collector/aggregator'
+require_relative 'collector/counter_cache'
+require_relative 'collector/exceptions'
+require_relative 'collector/group'

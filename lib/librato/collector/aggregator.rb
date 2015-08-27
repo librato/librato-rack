@@ -127,7 +127,5 @@ module Librato
 
     end
 
-    # custom exceptions
-    class InvalidPercentile < StandardError; end
   end
 end
