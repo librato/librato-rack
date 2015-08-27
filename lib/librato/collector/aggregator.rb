@@ -113,7 +113,9 @@ module Librato
 
       def clear_storage
         @cache.clear
-        @percentiles = {}
+        unless @percentiles.empty?
+          @percentiles = {}
+        end
       end
 
       def fetch_percentile(key, options)
