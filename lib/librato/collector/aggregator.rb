@@ -35,7 +35,10 @@ module Librato
       end
 
       def delete_all
-        @lock.synchronize { @cache.clear }
+        @lock.synchronize {
+          @cache.clear
+          @percentiles = {}
+        }
       end
 
       # transfer all measurements to queue and reset internal status
