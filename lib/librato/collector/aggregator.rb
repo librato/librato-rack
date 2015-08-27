@@ -112,7 +112,7 @@ module Librato
       end
 
       def fetch_percentile(key, options)
-        store = fetch_percentile_store(key, nil)
+        store = fetch_percentile_store(key, options[:source])
         return nil unless store
         store.percentile(options[:percentile])
       end

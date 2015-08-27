@@ -62,6 +62,15 @@ module Librato
         }
       end
 
+      def test_percentiles_with_source
+        Array(1..10).each do |val|
+          @agg.timing 'a.sample.thing', val, percentile: 50, source: 'foo'
+        end
+        assert_equal 5.5,
+          @agg.fetch('a.sample.thing', source: 'foo', percentile: 50),
+          'can calculate percentile with source'
+      end
+
       # Todo: mult percentiles, block form, with source, invalid percentile
 
       def test_return_values
