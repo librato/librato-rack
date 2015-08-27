@@ -113,8 +113,9 @@ module Librato
 
       def clear_storage
         @cache.clear
-        unless @percentiles.empty?
-          @percentiles = {}
+        @percentiles.each do |key, val|
+          val[:reservoir].clear
+          val[:percs].clear
         end
       end
 

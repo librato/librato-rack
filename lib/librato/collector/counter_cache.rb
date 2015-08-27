@@ -76,7 +76,7 @@ module Librato
       def increment(counter, options={})
         if options.is_a?(Fixnum)
           # suppport legacy style
-          options = {:by => options}
+          options = {by: options}
         end
         by = options[:by] || 1
         if options[:source]
