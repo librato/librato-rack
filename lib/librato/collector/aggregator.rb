@@ -1,3 +1,5 @@
+require 'hetchy'
+
 module Librato
   class Collector
     # maintains storage of timing and measurement type measurements
@@ -9,6 +11,7 @@ module Librato
 
       def initialize(options={})
         @cache = Librato::Metrics::Aggregator.new(:prefix => options[:prefix])
+        @percentiles = {}
         @lock = Mutex.new
       end
 
@@ -18,6 +21,7 @@ module Librato
 
       def fetch(key, options={})
         return nil if @cache.empty?
+        return fetch_percentile(key, options) if options[:percentile]
         gauges = nil
         source = options[:source]
         @lock.synchronize { gauges = @cache.queued[:gauges] }
@@ -80,6 +84,7 @@ module Librato
           options = args[-1]
         end
         source = options[:source]
+        percentiles = Array(options[:percentile])
 
         @lock.synchronize do
           if source
@@ -87,10 +92,28 @@ module Librato
           else
             @cache.add event => value
           end
+
+          percentiles.each do |perc|
+            store = fetch_percentile_store(event, source)
+            store << value
+          end
         end
         returned
       end
       alias :timing :measure
+
+      private
+
+      def fetch_percentile(key, options)
+        store = fetch_percentile_store(key, nil)
+        return nil unless store
+        store.percentile(options[:percentile])
+      end
+
+      def fetch_percentile_store(event, source)
+        keyname = source ? "#{event}$$#{source}" : event
+        @percentiles[keyname] ||= Hetchy::Reservoir.new(size: 1000)
+      end
 
     end
   end

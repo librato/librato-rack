@@ -27,6 +27,16 @@ module Librato
         assert_in_delta @agg['another.task'][:sum], 100, 50
       end
 
+      def test_percentiles
+        [0.1, 0.2, 0.3].each do |val|
+          @agg.timing 'a.sample.thing', val, percentile: 50
+        end
+
+        assert_equal 0.2, @agg.fetch('a.sample.thing', percentile: 50)
+
+        # Todo: mult percentiles, block form, with source, invalid percentile
+      end
+
       def test_return_values
         simple = @agg.timing 'simple', 20
         assert_equal nil, simple
