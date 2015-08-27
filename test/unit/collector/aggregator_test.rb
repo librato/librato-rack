@@ -135,6 +135,10 @@ module Librato
         assert_nil a_timing[:source],             'no source set'
         assert_equal 'f', b_timing_50[:source],   'proper source set'
         assert_equal 'f', b_timing_999[:source],  'proper source set'
+
+        # flushing clears percentages to track
+        storage = @agg.instance_variable_get('@percentiles')
+        assert_equal 0, storage['a.timing'][:percs].length, 'clears percentiles'
       end
 
     end
