@@ -94,6 +94,7 @@ module Librato
           end
 
           percentiles.each do |perc|
+            check_percentile(perc)
             store = fetch_percentile_store(event, source)
             store << value
           end
@@ -103,6 +104,12 @@ module Librato
       alias :timing :measure
 
       private
+
+      def check_percentile(perc)
+        if perc < 0.0 || perc > 100.0
+          raise InvalidPercentile, "Percentiles must be between 0.0 and 100.0"
+        end
+      end
 
       def fetch_percentile(key, options)
         store = fetch_percentile_store(key, nil)
@@ -116,5 +123,8 @@ module Librato
       end
 
     end
+
+    # custom exceptions
+    class InvalidPercentile < StandardError; end
   end
 end

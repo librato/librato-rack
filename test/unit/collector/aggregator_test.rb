@@ -28,14 +28,41 @@ module Librato
       end
 
       def test_percentiles
+        # simple case
         [0.1, 0.2, 0.3].each do |val|
           @agg.timing 'a.sample.thing', val, percentile: 50
         end
+        assert_equal 0.2, @agg.fetch('a.sample.thing', percentile: 50),
+          'can calculate percentile'
 
-        assert_equal 0.2, @agg.fetch('a.sample.thing', percentile: 50)
+        # multiple percentiles
+        [0.2, 0.35].each do |val|
+          @agg.timing 'a.sample.thing', val, percentile: [80, 95]
+        end
+        assert_equal 0.31, @agg.fetch('a.sample.thing', percentile: 65),
+          'can calculate another percentile simultaneously'
+        assert_equal 0.35, @agg.fetch('a.sample.thing', percentile: 95),
+          'can calculate another percentile simultaneously'
 
-        # Todo: mult percentiles, block form, with source, invalid percentile
+        # ensure storage is efficient: this is a little gross because we
+        # have to inquire past the public interface, but important to verify
+        assert_equal 1, @agg.instance_variable_get('@percentiles').length,
+          'maintains all samples for same metric/source in one pool'
       end
+
+      def test_percentiles_invalid
+        # less than 0.0
+        assert_raises(Librato::Collector::InvalidPercentile) {
+          @agg.timing 'a.sample.thing', 123, percentile: -25.5
+        }
+
+        # greater than 100.0
+        assert_raises(Librato::Collector::InvalidPercentile) {
+          @agg.timing 'a.sample.thing', 123, percentile: 100.2
+        }
+      end
+
+      # Todo: mult percentiles, block form, with source, invalid percentile
 
       def test_return_values
         simple = @agg.timing 'simple', 20
