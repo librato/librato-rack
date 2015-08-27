@@ -131,6 +131,22 @@ The block form auto-submits the time it took for its contents to execute as the 
       @twitter = Twitter.lookup(user)
     end
 
+###### percentiles (beta)
+
+By defaults timings will send the average, sum, max and min for every minute. If you want to send percentiles as well you can specify them inline while instrumenting:
+
+    # track a single percentile
+    Librato.timing 'api.request.time', time, percentile: 95
+
+    # track multiple percentiles
+    Librato.timing 'api.request.time', time, percentile: [95, 99]
+
+You can also use percentiles with the block form of timings:
+
+    Librato.timing 'my.important.event', percentile: 95 do
+      # do work
+    end
+
 #### group
 
 There is also a grouping helper, to make managing nested metrics easier. So this:
