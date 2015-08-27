@@ -21,6 +21,8 @@ module Librato
         fetch(key)
       end
 
+      # retrieve current value of a metric/source/percentage. this exists
+      # primarily for debugging/testing and isn't called routinely.
       def fetch(key, options={})
         return nil if @cache.empty?
         return fetch_percentile(key, options) if options[:percentile]
@@ -36,6 +38,7 @@ module Librato
         nil
       end
 
+      # clear all stored values
       def delete_all
         @lock.synchronize {
           @cache.clear
