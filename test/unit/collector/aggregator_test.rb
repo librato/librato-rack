@@ -104,10 +104,37 @@ module Librato
 
         q = Librato::Metrics::Queue.new
         @agg.flush_to(q)
+
         expected = Set.new([
           {:name=>"meaning.of.life", :count=>1, :sum=>1.0, :min=>1.0, :max=>1.0},
-          {:name=>"meaning.of.life", :count=>1, :sum=>42.0, :min=>42.0, :max=>42.0, :source=>"douglas_adams"}])
+          {:name=>"meaning.of.life", :count=>1, :sum=>42.0, :min=>42.0, :max=>42.0, :source=>"douglas_adams"}
+        ])
         assert_equal expected, Set.new(q.queued[:gauges])
+      end
+
+      def test_flush_percentiles
+        [1,2,3].each { |i| @agg.timing 'a.timing', i, percentile: 95 }
+        [1,2,3].each { |i| @agg.timing 'b.timing', i, source: 'f', percentile: [50, 99.9] }
+
+        q = Librato::Metrics::Queue.new
+        @agg.flush_to(q)
+
+        queued = q.queued[:gauges]
+        a_timing     = queued.detect{ |q| q[:name] == 'a.timing.p95' }
+        b_timing_50  = queued.detect{ |q| q[:name] == 'b.timing.p50' }
+        b_timing_999 = queued.detect{ |q| q[:name] == 'b.timing.p999' }
+
+        refute_nil a_timing,      'sending a.timing percentile'
+        refute_nil b_timing_50,   'sending b.timing 50th percentile'
+        refute_nil b_timing_999,  'sending a.timing 99.9th percentile'
+
+        assert_equal 3, a_timing[:value]
+        assert_equal 2, b_timing_50[:value]
+        assert_equal 3, b_timing_999[:value]
+
+        assert_nil a_timing[:source],             'no source set'
+        assert_equal 'f', b_timing_50[:source],   'proper source set'
+        assert_equal 'f', b_timing_999[:source],  'proper source set'
       end
 
     end

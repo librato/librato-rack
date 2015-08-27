@@ -5,6 +5,8 @@ module Librato
     # maintains storage of timing and measurement type measurements
     #
     class Aggregator
+      SOURCE_SEPARATOR = '$$'
+
       extend Forwardable
 
       def_delegators :@cache, :empty?, :prefix, :prefix=
@@ -47,6 +49,7 @@ module Librato
         @lock.synchronize do
           return if @cache.empty?
           queued = @cache.queued
+          flush_percentiles(queue, opts) unless @percentiles.empty?
           @cache.clear unless opts[:preserve]
         end
         queue.merge!(queued) if queued
@@ -97,9 +100,9 @@ module Librato
           end
 
           percentiles.each do |perc|
-            check_percentile(perc)
             store = fetch_percentile_store(event, source)
-            store << value
+            store[:reservoir] << value
+            track_percentile(store, perc)
           end
         end
         returned
@@ -108,21 +111,41 @@ module Librato
 
       private
 
-      def check_percentile(perc)
-        if perc < 0.0 || perc > 100.0
-          raise InvalidPercentile, "Percentiles must be between 0.0 and 100.0"
-        end
-      end
-
       def fetch_percentile(key, options)
         store = fetch_percentile_store(key, options[:source])
         return nil unless store
-        store.percentile(options[:percentile])
+        store[:reservoir].percentile(options[:percentile])
       end
 
       def fetch_percentile_store(event, source)
-        keyname = source ? "#{event}$$#{source}" : event
-        @percentiles[keyname] ||= Hetchy::Reservoir.new(size: 1000)
+        keyname = source ? "#{event}#{SOURCE_SEPARATOR}#{source}" : event
+        @percentiles[keyname] ||= {
+          reservoir: Hetchy::Reservoir.new(size: 1000),
+          percs: Set.new
+        }
+      end
+
+      def flush_percentiles(queue, opts)
+        @percentiles.each do |key, val|
+          metric, source = key.split(SOURCE_SEPARATOR)
+          val[:percs].each do |perc|
+            perc_name = perc.to_s[0,5].gsub('.','')
+            payload = if source
+              { value: val[:reservoir].percentile(perc), source: source }
+            else
+              val[:reservoir].percentile(perc)
+            end
+            queue.add "#{metric}.p#{perc_name}" => payload
+          end
+        end
+        @percentiles = {} unless opts[:preserve]
+      end
+
+      def track_percentile(store, perc)
+        if perc < 0.0 || perc > 100.0
+          raise InvalidPercentile, "Percentiles must be between 0.0 and 100.0"
+        end
+        store[:percs].add(perc)
       end
 
     end
