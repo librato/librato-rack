@@ -107,10 +107,10 @@ module Librato
         case queue_start.length
         when 16 # microseconds
           wait = ((Time.now.to_f * 1000000).to_i - queue_start.to_i) / 1000.0
-          tracker.timing 'rack.request.queue.time', wait
+          tracker.timing 'rack.request.queue.time', wait, percentile: 95
         when 13 # milliseconds
           wait = (Time.now.to_f * 1000).to_i - queue_start.to_i
-          tracker.timing 'rack.request.queue.time', wait
+          tracker.timing 'rack.request.queue.time', wait, percentile: 95
         end
       end
     end
@@ -119,7 +119,7 @@ module Librato
       return if config.disable_rack_metrics
       tracker.group 'rack.request' do |group|
         group.increment 'total'
-        group.timing    'time', duration
+        group.timing    'time', duration, percentile: 95
         group.increment 'slow' if duration > 200.0
 
         group.group 'status' do |s|
