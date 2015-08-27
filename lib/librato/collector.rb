@@ -10,7 +10,7 @@ module Librato
 
     # access to internal aggregator object
     def aggregate
-      @aggregator_cache ||= Aggregator.new(:prefix => @prefix)
+      @aggregator_cache ||= Aggregator.new(prefix: @prefix)
     end
 
     # access to internal counters object

@@ -55,7 +55,7 @@ module Librato
         counts.each do |metric, value|
           metric, source = metric.split(SEPARATOR)
           if source
-            queue.add metric => {:value => value, :source => source}
+            queue.add metric => {value: value, source: source}
           else
             queue.add metric => value
           end
