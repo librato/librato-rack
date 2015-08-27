@@ -10,7 +10,7 @@ module Librato
       def_delegators :@cache, :empty?, :prefix, :prefix=
 
       def initialize(options={})
-        @cache = Librato::Metrics::Aggregator.new(:prefix => options[:prefix])
+        @cache = Librato::Metrics::Aggregator.new(prefix: options[:prefix])
         @percentiles = {}
         @lock = Mutex.new
       end
@@ -88,7 +88,7 @@ module Librato
 
         @lock.synchronize do
           if source
-            @cache.add event => {:source => source, :value => value}
+            @cache.add event => {source: source, value: value}
           else
             @cache.add event => value
           end
