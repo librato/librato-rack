@@ -40,10 +40,7 @@ module Librato
 
       # clear all stored values
       def delete_all
-        @lock.synchronize {
-          @cache.clear
-          @percentiles = {}
-        }
+        @lock.synchronize { clear_storage }
       end
 
       # transfer all measurements to queue and reset internal status
@@ -53,7 +50,7 @@ module Librato
           return if @cache.empty?
           queued = @cache.queued
           flush_percentiles(queue, opts) unless @percentiles.empty?
-          @cache.clear unless opts[:preserve]
+          clear_storage unless opts[:preserve]
         end
         queue.merge!(queued) if queued
       end
@@ -114,6 +111,11 @@ module Librato
 
       private
 
+      def clear_storage
+        @cache.clear
+        @percentiles = {}
+      end
+
       def fetch_percentile(key, options)
         store = fetch_percentile_store(key, options[:source])
         return nil unless store
@@ -141,7 +143,6 @@ module Librato
             queue.add "#{metric}.p#{perc_name}" => payload
           end
         end
-        @percentiles = {} unless opts[:preserve]
       end
 
       def track_percentile(store, perc)
