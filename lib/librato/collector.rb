@@ -1,3 +1,5 @@
+require 'forwardable'
+
 module Librato
   # collects and stores measurement values over time so they can be
   # reported periodically to the Metrics service
