@@ -55,7 +55,7 @@ module Librato
         counts.each do |metric, value|
           metric, source = metric.split(SEPARATOR)
           if source
-            queue.add metric => {:value => value, :source => source}
+            queue.add metric => {value: value, source: source}
           else
             queue.add metric => value
           end
@@ -76,7 +76,7 @@ module Librato
       def increment(counter, options={})
         if options.is_a?(Fixnum)
           # suppport legacy style
-          options = {:by => options}
+          options = {by: options}
         end
         by = options[:by] || 1
         if options[:source]

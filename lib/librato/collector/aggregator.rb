@@ -1,14 +1,19 @@
+require 'hetchy'
+
 module Librato
   class Collector
     # maintains storage of timing and measurement type measurements
     #
     class Aggregator
+      SOURCE_SEPARATOR = '$$'
+
       extend Forwardable
 
       def_delegators :@cache, :empty?, :prefix, :prefix=
 
       def initialize(options={})
-        @cache = Librato::Metrics::Aggregator.new(:prefix => options[:prefix])
+        @cache = Librato::Metrics::Aggregator.new(prefix: options[:prefix])
+        @percentiles = {}
         @lock = Mutex.new
       end
 
@@ -16,8 +21,11 @@ module Librato
         fetch(key)
       end
 
+      # retrieve current value of a metric/source/percentage. this exists
+      # primarily for debugging/testing and isn't called routinely.
       def fetch(key, options={})
         return nil if @cache.empty?
+        return fetch_percentile(key, options) if options[:percentile]
         gauges = nil
         source = options[:source]
         @lock.synchronize { gauges = @cache.queued[:gauges] }
@@ -30,8 +38,9 @@ module Librato
         nil
       end
 
+      # clear all stored values
       def delete_all
-        @lock.synchronize { @cache.clear }
+        @lock.synchronize { clear_storage }
       end
 
       # transfer all measurements to queue and reset internal status
@@ -40,7 +49,8 @@ module Librato
         @lock.synchronize do
           return if @cache.empty?
           queued = @cache.queued
-          @cache.clear unless opts[:preserve]
+          flush_percentiles(queue, opts) unless @percentiles.empty?
+          clear_storage unless opts[:preserve]
         end
         queue.merge!(queued) if queued
       end
@@ -80,18 +90,72 @@ module Librato
           options = args[-1]
         end
         source = options[:source]
+        percentiles = Array(options[:percentile])
 
         @lock.synchronize do
           if source
-            @cache.add event => {:source => source, :value => value}
+            @cache.add event => {source: source, value: value}
           else
             @cache.add event => value
+          end
+
+          percentiles.each do |perc|
+            store = fetch_percentile_store(event, source)
+            store[:reservoir] << value
+            track_percentile(store, perc)
           end
         end
         returned
       end
       alias :timing :measure
 
+      private
+
+      def clear_storage
+        @cache.clear
+        @percentiles.each do |key, val|
+          val[:reservoir].clear
+          val[:percs].clear
+        end
+      end
+
+      def fetch_percentile(key, options)
+        store = fetch_percentile_store(key, options[:source])
+        return nil unless store
+        store[:reservoir].percentile(options[:percentile])
+      end
+
+      def fetch_percentile_store(event, source)
+        keyname = source ? "#{event}#{SOURCE_SEPARATOR}#{source}" : event
+        @percentiles[keyname] ||= {
+          reservoir: Hetchy::Reservoir.new(size: 1000),
+          percs: Set.new
+        }
+      end
+
+      def flush_percentiles(queue, opts)
+        @percentiles.each do |key, val|
+          metric, source = key.split(SOURCE_SEPARATOR)
+          val[:percs].each do |perc|
+            perc_name = perc.to_s[0,5].gsub('.','')
+            payload = if source
+              { value: val[:reservoir].percentile(perc), source: source }
+            else
+              val[:reservoir].percentile(perc)
+            end
+            queue.add "#{metric}.p#{perc_name}" => payload
+          end
+        end
+      end
+
+      def track_percentile(store, perc)
+        if perc < 0.0 || perc > 100.0
+          raise InvalidPercentile, "Percentiles must be between 0.0 and 100.0"
+        end
+        store[:percs].add(perc)
+      end
+
     end
+
   end
 end
