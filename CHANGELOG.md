@@ -1,3 +1,7 @@
+###
+* Add support for percentiles when timing
+* Report p95 for rack.request.time and rack.request.queue.time
+
 ### Version 0.4.5
 * Add #start! to tracker
 
