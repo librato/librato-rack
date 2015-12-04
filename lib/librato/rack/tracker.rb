@@ -39,7 +39,9 @@ module Librato
 
       # primary collector object used by this tracker
       def collector
-        @collector ||= Librato::Collector.new
+        @collector ||= Librato::Collector.new(
+          source_prefix: config.prefix_custom_sources ? config.source : nil
+        )
       end
 
       # log a deprecation message

@@ -7,8 +7,27 @@ module Librato
   class Collector
     extend Forwardable
 
-    def_delegators :counters, :increment
-    def_delegators :aggregate, :measure, :timing
+    def initialize(options={})
+      @source_prefix = options[:source_prefix]
+    end
+
+    def increment(counter, options={})
+      if @source_prefix && options[:source]
+        options[:source] = "#{@source_prefix}.#{options[:source]}"
+      end
+      counters.increment(counter, options)
+    end
+
+    def measure(*args, &block)
+      if args.length > 1 and args[-1].respond_to?(:each)
+        options = args[-1]
+        if @source_prefix && options[:source]
+          options[:source] = "#{@source_prefix}.#{options[:source]}"
+        end
+      end
+      aggregate.measure(*args, &block)
+    end
+    alias :timing :measure
 
     # access to internal aggregator object
     def aggregate

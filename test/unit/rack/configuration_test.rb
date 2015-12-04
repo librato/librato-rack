@@ -49,6 +49,12 @@ module Librato
         assert !config.explicit_source?, 'source should no long be explicit when reset'
       end
 
+      def test_prefix_custom_sources
+        config = Configuration.new
+        config.prefix_custom_sources = true
+        assert config.prefix_custom_sources, 'prefix_custom_sources should be true'
+      end
+
       def test_prefix_change_notification
         config = Configuration.new
         listener = listener_object
@@ -86,6 +92,7 @@ module Librato
         ENV.delete('LIBRATO_TOKEN')
         ENV.delete('LIBRATO_SOURCE')
         ENV.delete('LIBRATO_PREFIX')
+        ENV.delete('LIBRATO_SOURCE_PREFIX')
         ENV.delete('LIBRATO_LOG_LEVEL')
         ENV.delete('LIBRATO_EVENT_MODE')
         # legacy

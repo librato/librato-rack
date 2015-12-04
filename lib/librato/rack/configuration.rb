@@ -14,7 +14,7 @@ module Librato
 
       attr_accessor :user, :token, :autorun, :api_endpoint, :tracker,
                     :source_pids, :log_level, :log_prefix, :log_target,
-                    :disable_rack_metrics, :flush_interval
+                    :disable_rack_metrics, :flush_interval, :prefix_custom_sources
       attr_reader :prefix, :source, :deprecations
 
       def initialize
@@ -23,6 +23,7 @@ module Librato
         self.api_endpoint = Librato::Metrics.api_endpoint
         self.flush_interval = 60
         self.source_pids = false
+        self.prefix_custom_sources = false
         self.log_prefix = '[librato-rack] '
         @listeners = []
         @deprecations = []
@@ -79,7 +80,7 @@ module Librato
 
       def dump
         fields = {}
-        %w{user token log_level source prefix flush_interval source_pids}.each do |field|
+        %w{user token log_level source prefix flush_interval source_pids prefix_custom_sources}.each do |field|
           fields[field.to_sym] = self.send(field)
         end
         fields
