@@ -22,10 +22,12 @@ module Librato
         ENV['LIBRATO_USER'] = 'foo@bar.com'
         ENV['LIBRATO_TOKEN'] = 'api_key'
         ENV['LIBRATO_SOURCE'] = 'source'
+        ENV['LIBRATO_PROXY'] = 'http://localhost:8080'
         config = Configuration.new
         assert_equal 'foo@bar.com', config.user
         assert_equal 'api_key', config.token
         assert_equal 'source', config.source
+        assert_equal 'http://localhost:8080', config.proxy
         #assert Librato::Rails.explicit_source, 'source is explicit'
       end
 
@@ -38,6 +40,12 @@ module Librato
         assert_equal 'api_key', config.token
         assert_equal 'source', config.source
         # assert Librato::Rails.explicit_source, 'source is explicit'
+      end
+
+      def test_http_proxy_env_variable_config
+        ENV['http_proxy'] = 'http://localhost:8888'
+        config = Configuration.new
+        assert_equal 'http://localhost:8888', config.proxy
       end
 
       def test_explicit_source
@@ -84,6 +92,7 @@ module Librato
       def clear_env_vars
         ENV.delete('LIBRATO_USER')
         ENV.delete('LIBRATO_TOKEN')
+        ENV.delete('LIBRATO_PROXY')
         ENV.delete('LIBRATO_SOURCE')
         ENV.delete('LIBRATO_PREFIX')
         ENV.delete('LIBRATO_LOG_LEVEL')
@@ -92,6 +101,8 @@ module Librato
         ENV.delete('LIBRATO_METRICS_USER')
         ENV.delete('LIBRATO_METRICS_TOKEN')
         ENV.delete('LIBRATO_METRICS_SOURCE')
+        # system
+        ENV.delete('http_proxy')
       end
 
       def listener_object

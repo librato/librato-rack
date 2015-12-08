@@ -149,6 +149,7 @@ module Librato
         client = Librato::Metrics::Client.new
         client.authenticate config.user, config.token
         client.api_endpoint = config.api_endpoint
+        client.proxy = config.proxy
         client.custom_user_agent = user_agent
         if custom_adapter
           client.faraday_adapter = custom_adapter
