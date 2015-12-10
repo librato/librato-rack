@@ -1,3 +1,6 @@
+### Master
+* Add support for proxy configuration
+
 ### Version 0.5.0
 * Add support for percentiles when timing
 * Report p95 for rack.request.time and rack.request.queue.time

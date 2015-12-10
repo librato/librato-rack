@@ -14,7 +14,7 @@ module Librato
 
       attr_accessor :user, :token, :autorun, :api_endpoint, :tracker,
                     :source_pids, :log_level, :log_prefix, :log_target,
-                    :disable_rack_metrics, :flush_interval
+                    :disable_rack_metrics, :flush_interval, :proxy
       attr_reader :prefix, :source, :deprecations
 
       def initialize
@@ -59,6 +59,7 @@ module Librato
         self.prefix = ENV['LIBRATO_PREFIX'] || ENV['LIBRATO_METRICS_PREFIX']
         self.source = ENV['LIBRATO_SOURCE'] || ENV['LIBRATO_METRICS_SOURCE']
         self.log_level = ENV['LIBRATO_LOG_LEVEL'] || :info
+        self.proxy = ENV['LIBRATO_PROXY'] || ENV['https_proxy'] || ENV['http_proxy']
         self.event_mode = ENV['LIBRATO_EVENT_MODE']
         check_deprecations
       end
