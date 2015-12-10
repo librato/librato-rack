@@ -1,4 +1,4 @@
-### Master
+### Version 0.6.0
 * Add support for proxy configuration
 
 ### Version 0.5.0
