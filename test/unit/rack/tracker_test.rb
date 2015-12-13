@@ -46,6 +46,17 @@ module Librato
         ENV.delete('LIBRATO_AUTORUN')
       end
 
+      def test_suite_configured
+        ENV['LIBRATO_SUITES'] = 'abc,prq'
+
+        tracker = Tracker.new(Configuration.new)
+        assert tracker.suite_enabled?(:abc)
+        assert tracker.suite_enabled?(:prq)
+        refute tracker.suite_enabled?(:xyz)
+      ensure
+        ENV.delete('LIBRATO_SUITES')
+      end
+
       private
 
       def buffer_lines
