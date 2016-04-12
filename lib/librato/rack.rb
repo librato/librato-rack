@@ -37,6 +37,30 @@ module Librato
   #   run MyApp
   #
   class Rack
+    RECORD_RACK_BODY = <<-'EOS'
+      group.increment 'total'
+      group.timing    'time', duration
+      group.increment 'slow' if duration > 200.0
+    EOS
+
+    RECORD_RACK_STATUS_BODY = <<-'EOS'
+      group.group 'status' do |s|
+        s.increment status
+        s.increment "#{status.to_s[0]}xx"
+
+        s.timing "#{status}.time", duration
+        s.timing "#{status.to_s[0]}xx.time", duration
+      end
+    EOS
+
+    RECORD_RACK_METHOD_BODY = <<-'EOS'
+      group.group 'method' do |m|
+        http_method.downcase!
+        m.increment http_method
+        m.timing "#{http_method}.time", duration
+      end
+    EOS
+
     attr_reader :config, :tracker
 
     def initialize(app, options={})
@@ -54,6 +78,8 @@ module Librato
       if old_style
         @tracker.deprecate 'middleware setup no longer takes a single argument, use `use Librato::Rack :config => config` instead.'
       end
+
+      build_record_request_metrics_method
     end
 
     def call(env)
@@ -114,39 +140,37 @@ module Librato
       end
     end
 
-    def record_request_metrics(status, http_method, duration)
-      return if config.disable_rack_metrics
-      tracker.group 'rack.request' do |group|
-
-        if tracker.suite_enabled?(:rack)
-          group.increment 'total'
-          group.timing    'time', duration, percentile: 95
-          group.increment 'slow' if duration > 200.0
-        end
-
-        if tracker.suite_enabled?(:rack_status)
-          group.group 'status' do |s|
-            s.increment status
-            s.increment "#{status.to_s[0]}xx"
-
-            s.timing "#{status}.time", duration
-            s.timing "#{status.to_s[0]}xx.time", duration
-          end
-        end
-
-        if tracker.suite_enabled?(:rack_method)
-          group.group 'method' do |m|
-            http_method.downcase!
-            m.increment http_method
-            m.timing "#{http_method}.time", duration
-          end
-        end
-      end
-    end
-
     def record_exception(exception)
       return if config.disable_rack_metrics
       tracker.increment 'rack.request.exceptions'
+    end
+
+    # Dynamically construct :record_request_metrics method
+    def build_record_request_metrics_method
+      body = "def record_request_metrics(status, http_method, duration)\n"
+      body << "return if config.disable_rack_metrics\n"
+
+      unless config.instance_of?(Librato::Rack::Configuration::SuitesNone)
+        body << "tracker.group 'rack.request' do |group|\n"
+
+        if tracker.suite_enabled?(:rack)
+          body << RECORD_RACK_BODY
+        end
+
+        if tracker.suite_enabled?(:rack_status)
+          body << RECORD_RACK_STATUS_BODY
+        end
+
+        if tracker.suite_enabled?(:rack_method)
+          body << RECORD_RACK_METHOD_BODY
+        end
+
+        body << "end\n"
+      end
+
+      body << "end\n"
+
+      instance_eval(body)
     end
 
   end
