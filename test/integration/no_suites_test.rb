@@ -27,6 +27,12 @@ class NoSuitesTest < Minitest::Test
     assert_nil counters["rack.request.total"], 'should not increment'
   end
 
+  def test_track_queue_time
+    get '/'
+    assert last_response.ok?
+    assert_equal nil, aggregate["rack.request.queue.time"]
+  end
+
   def test_increment_status
     get '/'
     assert last_response.ok?

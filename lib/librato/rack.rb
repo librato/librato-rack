@@ -80,6 +80,7 @@ module Librato
       end
 
       build_record_request_metrics_method
+      build_record_header_metrics_method
     end
 
     def call(env)
@@ -125,27 +126,13 @@ module Librato
       [response, duration]
     end
 
-    def record_header_metrics(env)
-      queue_start = env['HTTP_X_REQUEST_START'] || env['HTTP_X_QUEUE_START']
-      if queue_start
-        queue_start = queue_start.to_s.sub('t=', '').sub('.', '')
-        case queue_start.length
-        when 16 # microseconds
-          wait = ((Time.now.to_f * 1000000).to_i - queue_start.to_i) / 1000.0
-          tracker.timing 'rack.request.queue.time', wait, percentile: 95
-        when 13 # milliseconds
-          wait = (Time.now.to_f * 1000).to_i - queue_start.to_i
-          tracker.timing 'rack.request.queue.time', wait, percentile: 95
-        end
-      end
-    end
-
     def record_exception(exception)
       return if config.disable_rack_metrics
       tracker.increment 'rack.request.exceptions'
     end
 
-    # Dynamically construct :record_request_metrics method
+    # Dynamically construct :record_request_metrics method based on
+    # configured metric suites
     def build_record_request_metrics_method
       body = "def record_request_metrics(status, http_method, duration)\n"
       body << "return if config.disable_rack_metrics\n"
@@ -171,6 +158,31 @@ module Librato
       body << "end\n"
 
       instance_eval(body)
+    end
+
+    # Dynamically construct :record_header_metrics method based on
+    # configured metric suites
+    def build_record_header_metrics_method
+      if tracker.suite_enabled?(:rack)
+        define_singleton_method(:record_header_metrics) do |env|
+          queue_start = env['HTTP_X_REQUEST_START'] || env['HTTP_X_QUEUE_START']
+          if queue_start
+            queue_start = queue_start.to_s.sub('t=', '').sub('.', '')
+            case queue_start.length
+            when 16 # microseconds
+              wait = ((Time.now.to_f * 1000000).to_i - queue_start.to_i) / 1000.0
+              tracker.timing 'rack.request.queue.time', wait, percentile: 95
+            when 13 # milliseconds
+              wait = (Time.now.to_f * 1000).to_i - queue_start.to_i
+              tracker.timing 'rack.request.queue.time', wait, percentile: 95
+            end
+          end
+        end
+      else
+        define_singleton_method(:record_header_metrics) do |env|
+          # no-op
+        end
+      end
     end
 
   end
