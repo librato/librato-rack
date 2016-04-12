@@ -102,7 +102,7 @@ module Librato
       end
 
       def suite_enabled?(suite)
-        config.suites.include?(suite.to_sym)
+        config.metric_suites.include?(suite.to_sym)
       end
 
       private

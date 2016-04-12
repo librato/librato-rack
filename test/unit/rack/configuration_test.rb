@@ -12,6 +12,7 @@ module Librato
         config = Configuration.new
         assert_equal 60, config.flush_interval
         assert_equal Librato::Metrics.api_endpoint, config.api_endpoint
+        assert_equal '', config.suites
       end
 
       def test_environment_variable_config
@@ -19,11 +20,13 @@ module Librato
         ENV['LIBRATO_TOKEN'] = 'api_key'
         ENV['LIBRATO_SOURCE'] = 'source'
         ENV['LIBRATO_PROXY'] = 'http://localhost:8080'
+        ENV['LIBRATO_SUITES'] = 'foo,bar'
         config = Configuration.new
         assert_equal 'foo@bar.com', config.user
         assert_equal 'api_key', config.token
         assert_equal 'source', config.source
         assert_equal 'http://localhost:8080', config.proxy
+        assert_equal 'foo,bar', config.suites
         #assert Librato::Rails.explicit_source, 'source is explicit'
       end
 

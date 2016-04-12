@@ -10,7 +10,6 @@ module EnvironmentHelpers
     ENV.delete('LIBRATO_SOURCE')
     ENV.delete('LIBRATO_PREFIX')
     ENV.delete('LIBRATO_SUITES')
-    ENV.delete('LIBRATO_SUITES_EXCEPT')
     ENV.delete('LIBRATO_LOG_LEVEL')
     ENV.delete('LIBRATO_EVENT_MODE')
     # legacy - deprecated

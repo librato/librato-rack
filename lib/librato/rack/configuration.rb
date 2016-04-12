@@ -16,7 +16,7 @@ module Librato
 
       attr_accessor :user, :token, :autorun, :api_endpoint, :tracker,
                     :source_pids, :log_level, :log_prefix, :log_target,
-                    :disable_rack_metrics, :flush_interval, :proxy
+                    :disable_rack_metrics, :flush_interval, :proxy, :suites
       attr_reader :prefix, :source, :deprecations
 
       def initialize
@@ -63,6 +63,7 @@ module Librato
         self.log_level = ENV['LIBRATO_LOG_LEVEL'] || :info
         self.proxy = ENV['LIBRATO_PROXY'] || ENV['https_proxy'] || ENV['http_proxy']
         self.event_mode = ENV['LIBRATO_EVENT_MODE']
+        self.suites = ENV['LIBRATO_SUITES'] || ''
         check_deprecations
       end
 
@@ -82,26 +83,25 @@ module Librato
 
       def dump
         fields = {}
-        %w{user token log_level source prefix flush_interval source_pids}.each do |field|
+        %w{user token log_level source prefix flush_interval source_pids suites}.each do |field|
           fields[field.to_sym] = self.send(field)
         end
         fields
       end
 
-      def suites
-        @suites ||= if ENV.has_key?('LIBRATO_SUITES')
-          suites = ENV['LIBRATO_SUITES']
-          case suites.downcase.strip
-          when 'all'
-            SuitesAll.new
-          when 'none'
-            SuitesNone.new
-          else
-            Suites.new(suites)
-          end
-        else
-          SuitesExcept.new(ENV['LIBRATO_SUITES_EXCEPT'])
-        end
+      def metric_suites
+        @metric_suites ||= case suites.downcase.strip
+                           when 'all'
+                             SuitesAll.new
+                           when 'none'
+                             SuitesNone.new
+                           when /^\+/
+                             SuitesInclude.new(suites[1..-1])
+                           when /^\-/
+                             SuitesExcept.new(suites[1..-1])
+                           else
+                             Suites.new(suites)
+                           end
       end
 
       private
