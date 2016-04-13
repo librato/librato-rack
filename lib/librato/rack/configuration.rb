@@ -86,6 +86,7 @@ module Librato
         %w{user token log_level source prefix flush_interval source_pids suites}.each do |field|
           fields[field.to_sym] = self.send(field)
         end
+        fields[:metric_suites] = metric_suites.fields
         fields
       end
 

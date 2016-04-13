@@ -34,12 +34,16 @@ module Librato
       end
 
       class SuitesAll
+        def fields; [:all]; end
+
         def include?(value)
           true
         end
       end
 
       class SuitesNone
+        def fields; []; end
+
         def include?(value)
           false
         end
