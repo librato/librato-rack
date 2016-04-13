@@ -6,6 +6,9 @@ rvm:
   - ruby-head
   - rbx
 
+before_install:
+  - gem update bundler
+
 matrix:
   allow_failures:
     - rvm: ruby-head
