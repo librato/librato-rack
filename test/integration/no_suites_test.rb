@@ -48,6 +48,16 @@ class NoSuitesTest < Minitest::Test
     assert_nil counters['rack.request.method.post']
   end
 
+  def test_increment_exception
+    begin
+      get '/exception'
+    rescue RuntimeError => e
+      raise unless e.message == 'exception raised!'
+    end
+
+    assert_nil counters["rack.request.exceptions"], 'should not increment'
+  end
+
   private
 
   def aggregate

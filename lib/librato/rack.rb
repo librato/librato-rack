@@ -81,6 +81,7 @@ module Librato
 
       build_record_request_metrics_method
       build_record_header_metrics_method
+      build_record_exception_method
     end
 
     def call(env)
@@ -126,10 +127,6 @@ module Librato
       [response, duration]
     end
 
-    def record_exception(exception)
-      return if config.disable_rack_metrics
-      tracker.increment 'rack.request.exceptions'
-    end
 
     # Dynamically construct :record_request_metrics method based on
     # configured metric suites
@@ -180,6 +177,19 @@ module Librato
         end
       else
         define_singleton_method(:record_header_metrics) do |env|
+          # no-op
+        end
+      end
+    end
+
+    def build_record_exception_method
+      if tracker.suite_enabled?(:rack)
+        define_singleton_method(:record_exception) do |exception|
+          return if config.disable_rack_metrics
+          tracker.increment 'rack.request.exceptions'
+        end
+      else
+        define_singleton_method(:record_exception) do |exception|
           # no-op
         end
       end
