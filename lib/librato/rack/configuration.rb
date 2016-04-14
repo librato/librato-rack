@@ -14,6 +14,8 @@ module Librato
     class Configuration
       EVENT_MODES = [:eventmachine, :synchrony]
 
+      DEFAULT_SUITES = [:rack, :rack_method, :rack_status]
+
       attr_accessor :user, :token, :autorun, :api_endpoint, :tracker,
                     :source_pids, :log_level, :log_prefix, :log_target,
                     :disable_rack_metrics, :flush_interval, :proxy, :suites
@@ -96,16 +98,16 @@ module Librato
                              SuitesAll.new
                            when 'none'
                              SuitesNone.new
-                           when /^\+/
-                             SuitesInclude.new(suites[1..-1])
-                           when /^\-/
-                             SuitesExcept.new(suites[1..-1])
                            else
-                             Suites.new(suites)
+                             Suites.new(suites, default_suites)
                            end
       end
 
       private
+
+      def default_suites
+        DEFAULT_SUITES
+      end
 
       def check_deprecations
         %w{USER TOKEN PREFIX SOURCE}.each do |item|

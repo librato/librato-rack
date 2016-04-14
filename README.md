@@ -95,12 +95,15 @@ All three of the metric suites listed above are enabled by default.
 
 The metric suites can be configured via either the `LIBRATO_SUITES` environment variable or the `suites` attributes on the `Librato::Rack::Configuration` object.
 
-    LIBRATO_SUITES="rack,rack_method"  # use only rack and rack_method suites
-    LIBRATO_SUITES="+foo,bar"          # + prefix indicates that you want the default suites plus foo and bar
+    LIBRATO_SUITES="rack,rack_method"  # use ONLY the rack and rack_method suites
+    LIBRATO_SUITES="+foo,+bar"         # + prefix indicates that you want the default suites plus foo and bar
     LIBRATO_SUITES="-rack_status"      # - prefix indicates that you want the default suites removing rack_status
+    LIBRATO_SUITES="+foo,-rack_status" # Use all default suites except for rack_status while also adding foo
     LIBRATO_SUITES="all"               # Enable all suites
     LIBRATO_SUITES="none"              # Disable all suites
     LIBRATO_SUITES=""                  # Use only the default suites (same as if env var is absent)
+
+Note that you should EITHER specify an explict list of suites to enable OR add/subtract individual suites from the default list (using the +/- prefixes). If you try to mix these two forms a `Librato::Rack::InvalidSuiteConfiguration` error will be raised.
 
 ## Custom Measurements
 

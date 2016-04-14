@@ -3,5 +3,7 @@ module Librato
 
     class InvalidLogLevel < RuntimeError; end
 
+    class InvalidSuiteConfiguration < RuntimeError; end
+
   end
 end

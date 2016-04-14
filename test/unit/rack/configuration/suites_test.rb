@@ -20,28 +20,55 @@ module Librato
         [:abc, :jkl, :prq, :xyz].each do |suite|
           assert config.metric_suites.include?(suite), "expected '#{suite}' to be active"
         end
-        refute config.metric_suites.include?(:rack), "should not include 'rack' by default"
+
+        Librato::Rack::Configuration::DEFAULT_SUITES.each do |suite|
+          refute config.metric_suites.include?(suite), "should not include '#{suite}' by default"
+        end
+
         refute config.metric_suites.include?(:something_else), 'should not include unspecified'
       end
 
       def test_suites_configured_by_inclusion
-        ENV['LIBRATO_SUITES'] = '+abc, jkl,prq , xyz'
+        ENV['LIBRATO_SUITES'] = '+abc, +jkl,+prq'
         config = Configuration.new
 
-        [:rack_method, :jkl, :prq, :xyz].each do |suite|
+        [:abc, :jkl, :prq].each do |suite|
           assert config.metric_suites.include?(suite), "expected '#{suite.to_s}' to be active"
         end
-        assert config.metric_suites.include?(:rack), "should include 'rack' by default"
+
+        Librato::Rack::Configuration::DEFAULT_SUITES.each do |suite|
+          assert config.metric_suites.include?(suite), "should include '#{suite}' by default"
+        end
       end
 
       def test_suites_configured_by_exclusion
-        ENV['LIBRATO_SUITES'] = '-rack_method, jkl,prq , xyz'
+        ENV['LIBRATO_SUITES'] = '-rack_method,-jkl'
         config = Configuration.new
 
-        [:rack_method, :jkl, :prq, :xyz].each do |suite|
-          refute config.metric_suites.include?(suite), "expected '#{suite.to_s}' to be inactive"
+        [:rack_method, :jkl].each do |suite|
+          refute config.metric_suites.include?(suite), "expected '#{suite.to_s}' to be disabled"
         end
+
         assert config.metric_suites.include?(:rack), "should include 'rack' by default"
+        assert config.metric_suites.include?(:rack_status), "should include 'rack_status' by default"
+      end
+
+      def test_suites_configured_by_inclusion_and_exclusion
+        ENV['LIBRATO_SUITES'] = '-rack_method, +foo'
+        config = Configuration.new
+
+        assert config.metric_suites.include?(:rack), "should include 'rack' by default"
+        assert config.metric_suites.include?(:rack_status), "should include 'rack_status' by default"
+        assert config.metric_suites.include?(:foo), "expected 'foo' to be active"
+        refute config.metric_suites.include?(:rack_method), "expected 'rack_method' to be disabled"
+      end
+
+      def test_invalid_suite_config
+        ENV['LIBRATO_SUITES'] = '-rack_method, +foo ,bar'
+
+        assert_raises(Librato::Rack::InvalidSuiteConfiguration) {
+          Configuration.new.metric_suites
+        }
       end
 
       def test_suites_all
@@ -58,7 +85,7 @@ module Librato
         config = Configuration.new
 
         [:foo, :bar, :baz].each do |suite|
-          refute config.metric_suites.include?(suite), "expected '#{suite.to_s}' to be active"
+          refute config.metric_suites.include?(suite), "expected '#{suite.to_s}' to be disabled"
         end
       end
 

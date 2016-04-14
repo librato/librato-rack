@@ -2,7 +2,7 @@ require 'bundler/setup'
 require 'librato-rack'
 
 config = Librato::Rack::Configuration.new
-config.suites = '-rack_status,rack_method'
+config.suites = '-rack_status,-rack_method'
 
 use Librato::Rack, :config => config
 
