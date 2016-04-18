@@ -30,17 +30,6 @@ module Librato
         #assert Librato::Rails.explicit_source, 'source is explicit'
       end
 
-      def test_legacy_env_variable_config
-        ENV['LIBRATO_METRICS_USER'] = 'foo@bar.com'
-        ENV['LIBRATO_METRICS_TOKEN'] = 'api_key'
-        ENV['LIBRATO_METRICS_SOURCE'] = 'source'
-        config = Configuration.new
-        assert_equal 'foo@bar.com', config.user
-        assert_equal 'api_key', config.token
-        assert_equal 'source', config.source
-        # assert Librato::Rails.explicit_source, 'source is explicit'
-      end
-
       def test_http_proxy_env_variable_config
         ENV['http_proxy'] = 'http://localhost:8888'
         config = Configuration.new

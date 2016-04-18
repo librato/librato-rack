@@ -57,11 +57,11 @@ module Librato
       # check environment variables and capture current state
       # for configuration
       def load_configuration
-        self.user = ENV['LIBRATO_USER'] || ENV['LIBRATO_METRICS_USER']
-        self.token = ENV['LIBRATO_TOKEN'] || ENV['LIBRATO_METRICS_TOKEN']
+        self.user = ENV['LIBRATO_USER']
+        self.token = ENV['LIBRATO_TOKEN']
         self.autorun = detect_autorun
-        self.prefix = ENV['LIBRATO_PREFIX'] || ENV['LIBRATO_METRICS_PREFIX']
-        self.source = ENV['LIBRATO_SOURCE'] || ENV['LIBRATO_METRICS_SOURCE']
+        self.prefix = ENV['LIBRATO_PREFIX']
+        self.source = ENV['LIBRATO_SOURCE']
         self.log_level = ENV['LIBRATO_LOG_LEVEL'] || :info
         self.proxy = ENV['LIBRATO_PROXY'] || ENV['https_proxy'] || ENV['http_proxy']
         self.event_mode = ENV['LIBRATO_EVENT_MODE']
@@ -110,11 +110,6 @@ module Librato
       end
 
       def check_deprecations
-        %w{USER TOKEN PREFIX SOURCE}.each do |item|
-          if ENV["LIBRATO_METRICS_#{item}"]
-            deprecate "LIBRATO_METRICS_#{item} will be removed in a future release, please use LIBRATO_#{item} instead."
-          end
-        end
       end
 
       def deprecate(message)

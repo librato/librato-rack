@@ -12,10 +12,6 @@ module EnvironmentHelpers
     ENV.delete('LIBRATO_SUITES')
     ENV.delete('LIBRATO_LOG_LEVEL')
     ENV.delete('LIBRATO_EVENT_MODE')
-    # legacy - deprecated
-    ENV.delete('LIBRATO_METRICS_USER')
-    ENV.delete('LIBRATO_METRICS_TOKEN')
-    ENV.delete('LIBRATO_METRICS_SOURCE')
     # system
     ENV.delete('http_proxy')
   end
