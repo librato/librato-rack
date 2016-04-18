@@ -1,6 +1,21 @@
 require 'bundler/setup'
 require 'librato-rack'
 
+# Simulate the environment variables Heroku passes along
+# with each request
+#
+class QueueWait
+  def initialize(app)
+    @app = app
+  end
+
+  def call(env)
+    env['HTTP_X_QUEUE_START'] = (Time.now.to_f * 1000).to_i.to_s
+    @app.call(env)
+  end
+end
+
+use QueueWait
 use Librato::Rack
 
 def application(env)

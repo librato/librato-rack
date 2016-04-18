@@ -1,3 +1,5 @@
+
+
 module Librato
   class Rack
     # Holds configuration for Librato::Rack middleware to use.
@@ -12,9 +14,11 @@ module Librato
     class Configuration
       EVENT_MODES = [:eventmachine, :synchrony]
 
+      DEFAULT_SUITES = [:rack, :rack_method, :rack_status]
+
       attr_accessor :user, :token, :autorun, :api_endpoint, :tracker,
                     :source_pids, :log_level, :log_prefix, :log_target,
-                    :disable_rack_metrics, :flush_interval, :proxy
+                    :disable_rack_metrics, :flush_interval, :proxy, :suites
       attr_reader :prefix, :source, :deprecations
 
       def initialize
@@ -61,6 +65,7 @@ module Librato
         self.log_level = ENV['LIBRATO_LOG_LEVEL'] || :info
         self.proxy = ENV['LIBRATO_PROXY'] || ENV['https_proxy'] || ENV['http_proxy']
         self.event_mode = ENV['LIBRATO_EVENT_MODE']
+        self.suites = ENV['LIBRATO_SUITES'] || ''
         check_deprecations
       end
 
@@ -80,13 +85,29 @@ module Librato
 
       def dump
         fields = {}
-        %w{user token log_level source prefix flush_interval source_pids}.each do |field|
+        %w{user token log_level source prefix flush_interval source_pids suites}.each do |field|
           fields[field.to_sym] = self.send(field)
         end
+        fields[:metric_suites] = metric_suites.fields
         fields
       end
 
+      def metric_suites
+        @metric_suites ||= case suites.downcase.strip
+                           when 'all'
+                             SuitesAll.new
+                           when 'none'
+                             SuitesNone.new
+                           else
+                             Suites.new(suites, default_suites)
+                           end
+      end
+
       private
+
+      def default_suites
+        DEFAULT_SUITES
+      end
 
       def check_deprecations
         %w{USER TOKEN PREFIX SOURCE}.each do |item|
@@ -114,3 +135,5 @@ module Librato
     end
   end
 end
+
+require_relative 'configuration/suites'

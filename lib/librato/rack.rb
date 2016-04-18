@@ -37,6 +37,30 @@ module Librato
   #   run MyApp
   #
   class Rack
+    RECORD_RACK_BODY = <<-'EOS'
+      group.increment 'total'
+      group.timing    'time', duration
+      group.increment 'slow' if duration > 200.0
+    EOS
+
+    RECORD_RACK_STATUS_BODY = <<-'EOS'
+      group.group 'status' do |s|
+        s.increment status
+        s.increment "#{status.to_s[0]}xx"
+
+        s.timing "#{status}.time", duration
+        s.timing "#{status.to_s[0]}xx.time", duration
+      end
+    EOS
+
+    RECORD_RACK_METHOD_BODY = <<-'EOS'
+      group.group 'method' do |m|
+        http_method.downcase!
+        m.increment http_method
+        m.timing "#{http_method}.time", duration
+      end
+    EOS
+
     attr_reader :config, :tracker
 
     def initialize(app, options={})
@@ -54,15 +78,18 @@ module Librato
       if old_style
         @tracker.deprecate 'middleware setup no longer takes a single argument, use `use Librato::Rack :config => config` instead.'
       end
+
+      build_record_request_metrics_method
+      build_record_header_metrics_method
+      build_record_exception_method
     end
 
     def call(env)
       check_log_output(env) unless @log_target
       @tracker.check_worker
-      request_method = env["REQUEST_METHOD"]
       record_header_metrics(env)
       response, duration = process_request(env)
-      record_request_metrics(response.first, request_method, duration)
+      record_request_metrics(response.first, env["REQUEST_METHOD"], duration)
       response
     end
 
@@ -100,47 +127,72 @@ module Librato
       [response, duration]
     end
 
-    def record_header_metrics(env)
-      queue_start = env['HTTP_X_REQUEST_START'] || env['HTTP_X_QUEUE_START']
-      if queue_start
-        queue_start = queue_start.to_s.sub('t=', '').sub('.', '')
-        case queue_start.length
-        when 16 # microseconds
-          wait = ((Time.now.to_f * 1000000).to_i - queue_start.to_i) / 1000.0
-          tracker.timing 'rack.request.queue.time', wait, percentile: 95
-        when 13 # milliseconds
-          wait = (Time.now.to_f * 1000).to_i - queue_start.to_i
-          tracker.timing 'rack.request.queue.time', wait, percentile: 95
+
+    # Dynamically construct :record_request_metrics method based on
+    # configured metric suites
+    def build_record_request_metrics_method
+      body = "def record_request_metrics(status, http_method, duration)\n"
+      body << "return if config.disable_rack_metrics\n"
+
+      unless config.instance_of?(Librato::Rack::Configuration::SuitesNone)
+        body << "tracker.group 'rack.request' do |group|\n"
+
+        if tracker.suite_enabled?(:rack)
+          body << RECORD_RACK_BODY
+        end
+
+        if tracker.suite_enabled?(:rack_status)
+          body << RECORD_RACK_STATUS_BODY
+        end
+
+        if tracker.suite_enabled?(:rack_method)
+          body << RECORD_RACK_METHOD_BODY
+        end
+
+        body << "end\n"
+      end
+
+      body << "end\n"
+
+      instance_eval(body)
+    end
+
+    # Dynamically construct :record_header_metrics method based on
+    # configured metric suites
+    def build_record_header_metrics_method
+      if tracker.suite_enabled?(:rack)
+        define_singleton_method(:record_header_metrics) do |env|
+          queue_start = env['HTTP_X_REQUEST_START'] || env['HTTP_X_QUEUE_START']
+          if queue_start
+            queue_start = queue_start.to_s.sub('t=', '').sub('.', '')
+            case queue_start.length
+            when 16 # microseconds
+              wait = ((Time.now.to_f * 1000000).to_i - queue_start.to_i) / 1000.0
+              tracker.timing 'rack.request.queue.time', wait, percentile: 95
+            when 13 # milliseconds
+              wait = (Time.now.to_f * 1000).to_i - queue_start.to_i
+              tracker.timing 'rack.request.queue.time', wait, percentile: 95
+            end
+          end
+        end
+      else
+        define_singleton_method(:record_header_metrics) do |env|
+          # no-op
         end
       end
     end
 
-    def record_request_metrics(status, http_method, duration)
-      return if config.disable_rack_metrics
-      tracker.group 'rack.request' do |group|
-        group.increment 'total'
-        group.timing    'time', duration, percentile: 95
-        group.increment 'slow' if duration > 200.0
-
-        group.group 'status' do |s|
-          s.increment status
-          s.increment "#{status.to_s[0]}xx"
-
-          s.timing "#{status}.time", duration
-          s.timing "#{status.to_s[0]}xx.time", duration
+    def build_record_exception_method
+      if tracker.suite_enabled?(:rack)
+        define_singleton_method(:record_exception) do |exception|
+          return if config.disable_rack_metrics
+          tracker.increment 'rack.request.exceptions'
         end
-
-        group.group 'method' do |m|
-          http_method.downcase!
-          m.increment http_method
-          m.timing "#{http_method}.time", duration
+      else
+        define_singleton_method(:record_exception) do |exception|
+          # no-op
         end
       end
-    end
-
-    def record_exception(exception)
-      return if config.disable_rack_metrics
-      tracker.increment 'rack.request.exceptions'
     end
 
   end

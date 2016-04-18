@@ -1,3 +1,6 @@
+### Version X.X.X
+* Add support for configurable metric suites
+
 ### Version 0.6.0
 * Add support for proxy configuration
 

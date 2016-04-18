@@ -3,19 +3,16 @@ require 'test_helper'
 module Librato
   class Rack
     class ConfigurationTest < Minitest::Test
+      include EnvironmentHelpers
 
-      def setup
-        clear_env_vars
-      end
-
-      def teardown
-        clear_env_vars
-      end
+      def setup;    clear_config_env_vars; end
+      def teardown; clear_config_env_vars; end
 
       def test_defaults
         config = Configuration.new
         assert_equal 60, config.flush_interval
         assert_equal Librato::Metrics.api_endpoint, config.api_endpoint
+        assert_equal '', config.suites
       end
 
       def test_environment_variable_config
@@ -23,11 +20,13 @@ module Librato
         ENV['LIBRATO_TOKEN'] = 'api_key'
         ENV['LIBRATO_SOURCE'] = 'source'
         ENV['LIBRATO_PROXY'] = 'http://localhost:8080'
+        ENV['LIBRATO_SUITES'] = 'foo,bar'
         config = Configuration.new
         assert_equal 'foo@bar.com', config.user
         assert_equal 'api_key', config.token
         assert_equal 'source', config.source
         assert_equal 'http://localhost:8080', config.proxy
+        assert_equal 'foo,bar', config.suites
         #assert Librato::Rails.explicit_source, 'source is explicit'
       end
 
@@ -88,22 +87,6 @@ module Librato
       end
 
       private
-
-      def clear_env_vars
-        ENV.delete('LIBRATO_USER')
-        ENV.delete('LIBRATO_TOKEN')
-        ENV.delete('LIBRATO_PROXY')
-        ENV.delete('LIBRATO_SOURCE')
-        ENV.delete('LIBRATO_PREFIX')
-        ENV.delete('LIBRATO_LOG_LEVEL')
-        ENV.delete('LIBRATO_EVENT_MODE')
-        # legacy
-        ENV.delete('LIBRATO_METRICS_USER')
-        ENV.delete('LIBRATO_METRICS_TOKEN')
-        ENV.delete('LIBRATO_METRICS_SOURCE')
-        # system
-        ENV.delete('http_proxy')
-      end
 
       def listener_object
         listener = Object.new
