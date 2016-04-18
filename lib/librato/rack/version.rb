@@ -1,5 +1,5 @@
 module Librato
   class Rack
-    VERSION = "0.6.0"
+    VERSION = "1.0.0.beta1"
   end
 end
