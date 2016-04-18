@@ -110,6 +110,9 @@ module Librato
       end
 
       def check_deprecations
+        if self.disable_rack_metrics
+          deprecate "disable_rack_metrics configuration option will be removed in a future release, please use config.suites = 'none' instead."
+        end
       end
 
       def deprecate(message)
