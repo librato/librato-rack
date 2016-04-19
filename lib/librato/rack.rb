@@ -64,20 +64,10 @@ module Librato
     attr_reader :config, :tracker
 
     def initialize(app, options={})
-      old_style = false
-      if options.respond_to?(:log_level) # old-style single argument
-        config = options
-        old_style = true
-      else
-        config = options.fetch(:config, Configuration.new)
-      end
-      @app, @config = app, config
+      @app = app
+      @config = options.fetch(:config, Configuration.new)
       @tracker = @config.tracker || Tracker.new(@config)
       Librato.register_tracker(@tracker) # create global reference
-
-      if old_style
-        @tracker.deprecate 'middleware setup no longer takes a single argument, use `use Librato::Rack :config => config` instead.'
-      end
 
       build_record_request_metrics_method
       build_record_header_metrics_method
