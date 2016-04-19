@@ -1,3 +1,8 @@
+### Version X.X.X
+* Drop support for long-deprecated config via LIBRATO_METRICS_* env vars
+* Drop support for old-style config passing during initialization
+* Deprecate `disable_rack_metrics` config option, use `suites='none'` instead
+
 ### Version 1.0.0.beta1
 * Add support for configurable metric suites
 
