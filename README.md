@@ -48,6 +48,7 @@ If you don't have a Metrics account already, [sign up](https://metrics.librato.c
 By default you can use `LIBRATO_USER` and `LIBRATO_TOKEN` to pass your account data to the middleware. While these are the only required variables, there are a few more optional environment variables you may find useful.
 
 * `LIBRATO_SOURCE` - the default source to use for submitted metrics. If this is not set, hostname of the executing machine will be the default source
+* `LIBRATO_SUITES` - manage which metrics librato-rack will report. See more in [metrics suites](#metric-suites).
 * `LIBRATO_PREFIX` - a prefix which will be prepended to all metric names
 * `LIBRATO_AUTORUN` - set to `'0'` to prevent the reporter from starting, useful if you don't want `librato-rack` to start under certain circumstances
 * `LIBRATO_LOG_LEVEL` - see logging section for more
