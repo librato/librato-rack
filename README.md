@@ -78,12 +78,6 @@ You must also specify a custom source for your app to track properly. If an expl
 
 NOTE: if Heroku idles your application no measurements will be sent until it receives another request and is restarted. If you see intermittent gaps in your measurements during periods of low traffic this is the most likely cause.
 
-##### Use with EventMachine and EM Synchrony
-
-`librato-rack` has experimental support for EventMachine and EM Synchrony apps.
-
-When using in an evented context set LIBRATO_EVENT_MODE to `'eventmachine'` if using [EventMachine](https://github.com/eventmachine/eventmachine) or `'synchrony'` if using [EM Synchrony](https://github.com/igrigorik/em-synchrony) and/or [Rack::FiberPool](https://github.com/alebsack/rack-fiber_pool). We're interested in maturing this support, so please let us know if you have any issues.
-
 ##### Metric Suites
 
 The metrics recorded by `librato-rack` are organized into named metric suites that can be selectively enabled/disabled:
@@ -105,6 +99,12 @@ The metric suites can be configured via either the `LIBRATO_SUITES` environment 
     LIBRATO_SUITES=""                  # Use only the default suites (same as if env var is absent)
 
 Note that you should EITHER specify an explict list of suites to enable OR add/subtract individual suites from the default list (using the +/- prefixes). If you try to mix these two forms a `Librato::Rack::InvalidSuiteConfiguration` error will be raised.
+
+##### Use with EventMachine and EM Synchrony
+
+`librato-rack` has experimental support for EventMachine and EM Synchrony apps.
+
+When using in an evented context set LIBRATO_EVENT_MODE to `'eventmachine'` if using [EventMachine](https://github.com/eventmachine/eventmachine) or `'synchrony'` if using [EM Synchrony](https://github.com/igrigorik/em-synchrony) and/or [Rack::FiberPool](https://github.com/alebsack/rack-fiber_pool). We're interested in maturing this support, so please let us know if you have any issues.
 
 ## Custom Measurements
 
