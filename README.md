@@ -86,7 +86,7 @@ When using in an evented context set LIBRATO_EVENT_MODE to `'eventmachine'` if u
 
 ##### Metric Suites
 
-The metrics recorded by `librato-rack` are organized into named metric suites that can be selecitvely enabled/disabled:
+The metrics recorded by `librato-rack` are organized into named metric suites that can be selectively enabled/disabled:
 
 * `rack`: The `rack.request.total`, `rack.request.time`, `rack.request.slow`, and `rack.request.queue.time` metrics
 * `rack_status`: All of the `rack.request.status` metrics
