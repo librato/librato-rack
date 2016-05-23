@@ -41,6 +41,8 @@ In your rackup file or equivalent, require and add the middleware:
     require 'librato-rack'
     use Librato::Rack
 
+In order to get the most accurate measurements, it is recommended that the `librato-rack` middleware be the first middleware in your stack. This will ensure that timing measurements like the `rack.request.time` metric will include all of the time spent in the Rack middleware stack.
+
 If you don't have a Metrics account already, [sign up](https://metrics.librato.com/). In order to send measurements to Metrics you need to provide your account credentials to `librato-rack`. You can provide these one of two ways:
 
 ##### Use environment variables
