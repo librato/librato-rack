@@ -233,4 +233,4 @@ If you are debugging setup locally you can set `flush_interval` to something sho
 
 ## Copyright
 
-Copyright (c) 2013-2014 [Librato Inc.](http://librato.com) See LICENSE for details.
+Copyright (c) 2013-2016 [Librato Inc.](http://librato.com) See LICENSE for details.
