@@ -37,6 +37,9 @@ class RequestTest < Minitest::Test
     assert_equal 1, aggregate["rack.request.time"][:count],
       'should track total request time'
 
+    # should calculte p95 value
+    refute_equal aggregate.fetch("rack.request.time", percentile: 95), 0.0
+
     # status specific
     assert_equal 1, aggregate["rack.request.status.200.time"][:count]
     assert_equal 1, aggregate["rack.request.status.2xx.time"][:count]
