@@ -1,3 +1,6 @@
+### Version X.X.X
+* Fix missing p95 for rack.request.time
+
 ### Version 1.0.0
 * Add support for configurable metric suites
 * Drop support for long-deprecated config via LIBRATO_METRICS_* env vars
