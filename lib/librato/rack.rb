@@ -39,7 +39,7 @@ module Librato
   class Rack
     RECORD_RACK_BODY = <<-'EOS'
       group.increment 'total'
-      group.timing    'time', duration
+      group.timing    'time', duration, percentile: 95
       group.increment 'slow' if duration > 200.0
     EOS
 
