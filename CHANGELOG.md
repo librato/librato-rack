@@ -1,4 +1,4 @@
-### Version X.X.X
+### Version 1.0.1
 * Fix missing p95 for rack.request.time
 
 ### Version 1.0.0
