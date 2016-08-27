@@ -21,6 +21,12 @@ gem 'rake'
 gem 'eventmachine'
 gem 'em-synchrony'
 
+# Dependency temporarily moved from gemspec until merged:
+# https://github.com/librato/librato-metrics/pull/121
+gem 'librato-metrics',
+  git: 'https://github.com/librato/librato-metrics.git',
+  branch: 'feature/md'
+
 platforms :rbx do
   gem 'rubysl', '~> 2.0'
   gem 'rubinius-developer_tools'

@@ -17,7 +17,9 @@ Gem::Specification.new do |s|
   s.files = Dir["{app,config,db,lib}/**/*"] + ["LICENSE", "Rakefile", "README.md", "CHANGELOG.md"]
   s.test_files = Dir["test/**/*"]
 
-  s.add_dependency "librato-metrics", "~> 1.6"
+  # Dependency temporarily moved to Gemfile until merged:
+  # https://github.com/librato/librato-metrics/pull/121
+  # s.add_dependency "librato-metrics", "~> 1.6"
   s.add_dependency "hetchy", "~> 1.0"
   s.add_development_dependency "minitest"
 
