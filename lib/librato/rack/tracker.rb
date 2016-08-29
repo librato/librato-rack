@@ -5,8 +5,6 @@ module Librato
     class Tracker
       extend Forwardable
 
-      SOURCE_REGEX = /\A[-:A-Za-z0-9_.]{1,255}\z/
-
       def_delegators :collector, :increment, :measure, :timing, :group
       def_delegators :logger, :log
 
@@ -59,9 +57,9 @@ module Librato
         log :error, "submission failed permanently: #{error}"
       end
 
-      # source including process pid if indicated
-      def qualified_source
-        config.source_pids ? "#{source}.#{$$}" : source
+      # tags merged with process pid if indicated
+      def qualified_tags
+        config.report_pids ? tags.merge({ pid: $$ }) : tags
       end
 
       # current local instrumentation to be sent on next flush
@@ -78,10 +76,8 @@ module Librato
           log :debug, 'halting: credentials not present.'
         elsif config.autorun == false
           log :debug, 'halting: LIBRATO_AUTORUN disabled startup'
-        elsif qualified_source !~ SOURCE_REGEX
-          log :warn, "halting: '#{qualified_source}' is an invalid source name."
-        elsif on_heroku && !config.explicit_source?
-          log :warn, 'halting: source must be provided in configuration.'
+        elsif on_heroku && !config.has_tags?
+          log :warn, 'halting: tags must be provided in configuration.'
         else
           return true
         end
@@ -125,7 +121,7 @@ module Librato
       end
 
       def build_flush_queue(collector, preserve=false)
-        queue = ValidatingQueue.new( client: client, source: qualified_source,
+        queue = ValidatingQueue.new( client: client, tags: qualified_tags,
           prefix: config.prefix, skip_measurement_times: true )
         [collector.counters, collector.aggregate].each do |cache|
           cache.flush_to(queue, preserve: preserve)
@@ -166,8 +162,8 @@ module Librato
         RUBY_DESCRIPTION.split[0]
       end
 
-      def source
-        @source ||= (config.source || Socket.gethostname).downcase
+      def tags
+        @tags ||= config.has_tags? ? config.tags : { hostname: Socket.gethostname.downcase }
       end
 
       # should we spin up a worker? wrap this in a process check
