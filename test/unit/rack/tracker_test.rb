@@ -25,7 +25,7 @@ module Librato
 
         assert_equal false, tracker.send(:should_start?),
           'should not start with implicit tags on heroku'
-        assert buffer_lines[0].index('tags must be provided')
+        assert buffer_lines[0].index("tags must be provided")
 
         config.tags = { hostname: "myapp" }
         new_tracker = Tracker.new(config)

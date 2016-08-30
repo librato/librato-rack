@@ -5,15 +5,22 @@ require 'rack/test'
 #
 class RequestTest < Minitest::Test
   include Rack::Test::Methods
+  include EnvironmentHelpers
 
   def app
     Rack::Builder.parse_file('test/apps/basic.ru').first
+  end
+
+  def setup
+    ENV["LIBRATO_TAGS"] = "hostname=metrics-web-stg-1"
+    @tags = { hostname: "metrics-web-stg-1" }
   end
 
   def teardown
     # clear metrics before each run
     aggregate.delete_all
     counters.delete_all
+    clear_config_env_vars
   end
 
   def test_increment_total_and_status
@@ -38,7 +45,7 @@ class RequestTest < Minitest::Test
       'should track total request time'
 
     # should calculate p95 value
-    assert aggregate.fetch("rack.request.time", percentile: 95) > 0.0
+    assert aggregate.fetch("rack.request.time", tags: @tags, percentile: 95) > 0.0
 
     # status specific
     assert_equal 1, aggregate["rack.request.status.200.time"][:count]

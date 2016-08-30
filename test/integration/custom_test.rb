@@ -5,15 +5,22 @@ require 'rack/test'
 #
 class CustomTest < Minitest::Test
   include Rack::Test::Methods
+  include EnvironmentHelpers
 
   def app
     Rack::Builder.parse_file('test/apps/custom.ru').first
+  end
+
+  def setup
+    ENV["LIBRATO_TAGS"] = "hostname=metrics-web-stg-1"
+    @tags = { hostname: "metrics-web-stg-1" }
   end
 
   def teardown
     # clear metrics before each run
     aggregate.delete_all
     counters.delete_all
+    clear_config_env_vars
   end
 
   def test_increment
@@ -25,13 +32,13 @@ class CustomTest < Minitest::Test
 
   def test_measure
     get '/measure'
-    assert_equal 3.0, aggregate[:nodes][:sum]
-    assert_equal 1, aggregate[:nodes][:count]
+    assert_equal 3.0, aggregate.fetch(:nodes, @tags)[:sum]
+    assert_equal 1, aggregate.fetch(:nodes, @tags)[:count]
   end
 
   def test_timing
     get '/timing'
-    assert_equal 1, aggregate['lookup.time'][:count]
+    assert_equal 1, aggregate.fetch("lookup.time", @tags)[:count]
   end
 
   def test_timing_block

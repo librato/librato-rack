@@ -5,7 +5,8 @@ module Librato
     class AggregatorTest < Minitest::Test
 
       def setup
-        @agg = Aggregator.new
+        @tags = { hostname: "metrics-web-stg-1" }
+        @agg = Aggregator.new(tags: @tags)
       end
 
       def test_adding_timings
@@ -32,17 +33,17 @@ module Librato
         [0.1, 0.2, 0.3].each do |val|
           @agg.timing 'a.sample.thing', val, percentile: 50
         end
-        assert_equal 0.2, @agg.fetch('a.sample.thing', percentile: 50),
-          'can calculate percentile'
+        assert_equal 0.2, @agg.fetch("a.sample.thing", percentile: 50, tags: @tags),
+          "can calculate percentile"
 
         # multiple percentiles
         [0.2, 0.35].each do |val|
           @agg.timing 'a.sample.thing', val, percentile: [80, 95]
         end
-        assert_equal 0.31, @agg.fetch('a.sample.thing', percentile: 65),
-          'can calculate another percentile simultaneously'
-        assert_equal 0.35, @agg.fetch('a.sample.thing', percentile: 95),
-          'can calculate another percentile simultaneously'
+        assert_equal 0.31, @agg.fetch("a.sample.thing", percentile: 65, tags: @tags),
+          "can calculate another percentile simultaneously"
+        assert_equal 0.35, @agg.fetch("a.sample.thing", percentile: 95, tags: @tags),
+          "can calculate another percentile simultaneously"
 
         # ensure storage is efficient: this is a little gross because we
         # have to inquire past the public interface, but important to verify
@@ -62,13 +63,13 @@ module Librato
         }
       end
 
-      def test_percentiles_with_source
+      def test_percentiles_with_tags
         Array(1..10).each do |val|
-          @agg.timing 'a.sample.thing', val, percentile: 50, source: 'foo'
+          @agg.timing "a.sample.thing", val, percentile: 50
         end
         assert_equal 5.5,
-          @agg.fetch('a.sample.thing', source: 'foo', percentile: 50),
-          'can calculate percentile with source'
+          @agg.fetch("a.sample.thing", tags: { hostname: "foo" }, percentile: 50),
+          "can calculate percentile with tags"
       end
 
       # Todo: mult percentiles, block form, with source, invalid percentile
@@ -84,42 +85,45 @@ module Librato
         assert_equal 'bar', timing
       end
 
-      def test_custom_source
-        # sources are kept separate
+      def test_custom_tags
+        tags_1 = { hostname: "douglas_adams" }
+        # tags are kept separate
         @agg.measure 'meaning.of.life', 1
-        @agg.measure 'meaning.of.life', 42, :source => 'douglas_adams'
+        @agg.measure 'meaning.of.life', 42, tags: tags_1
         assert_equal 1.0, @agg.fetch('meaning.of.life')[:sum]
-        assert_equal 42.0, @agg.fetch('meaning.of.life', :source => 'douglas_adams')[:sum]
+        assert_equal 42.0, @agg.fetch("meaning.of.life", tags: tags_1)[:sum]
 
-        # sources work with time blocks
-        @agg.timing 'mytiming', :source => 'mine' do
+        tags_2 = { hostname: "mine" }
+        # tags work with time blocks
+        @agg.timing "mytiming", tags: tags_2 do
           sleep 0.02
         end
-        assert_in_delta @agg.fetch('mytiming', :source => 'mine')[:sum], 20, 10
+        assert_in_delta @agg.fetch("mytiming", tags: tags_2)[:sum], 20, 10
       end
 
       def test_flush
+        tags = { hostname: "douglas_adams" }
         @agg.measure 'meaning.of.life', 1
-        @agg.measure 'meaning.of.life', 42, :source => 'douglas_adams'
+        @agg.measure "meaning.of.life", 42, tags: tags
 
         q = Librato::Metrics::Queue.new
         @agg.flush_to(q)
 
         expected = Set.new([
-          {:name=>"meaning.of.life", :count=>1, :sum=>1.0, :min=>1.0, :max=>1.0},
-          {:name=>"meaning.of.life", :count=>1, :sum=>42.0, :min=>42.0, :max=>42.0, :source=>"douglas_adams"}
+          {:name=>"meaning.of.life", :count=>1, :sum=>1.0, :min=>1.0, :max=>1.0, :tags=>{:hostname=>"metrics-web-stg-1"}},
+          {:name=>"meaning.of.life", :count=>1, :sum=>42.0, :min=>42.0, :max=>42.0, :tags=>tags}
         ])
-        assert_equal expected, Set.new(q.queued[:gauges])
+        assert_equal expected, Set.new(q.queued[:measurements])
       end
 
       def test_flush_percentiles
         [1,2,3].each { |i| @agg.timing 'a.timing', i, percentile: 95 }
-        [1,2,3].each { |i| @agg.timing 'b.timing', i, source: 'f', percentile: [50, 99.9] }
+        [1,2,3].each { |i| @agg.timing "b.timing", i, tags: { hostname: "f" }, percentile: [50, 99.9] }
 
         q = Librato::Metrics::Queue.new
         @agg.flush_to(q)
 
-        queued = q.queued[:gauges]
+        queued = q.queued[:measurements]
         a_timing     = queued.detect{ |q| q[:name] == 'a.timing.p95' }
         b_timing_50  = queued.detect{ |q| q[:name] == 'b.timing.p50' }
         b_timing_999 = queued.detect{ |q| q[:name] == 'b.timing.p999' }
@@ -132,9 +136,9 @@ module Librato
         assert_equal 2, b_timing_50[:value]
         assert_equal 3, b_timing_999[:value]
 
-        assert_nil a_timing[:source],             'no source set'
-        assert_equal 'f', b_timing_50[:source],   'proper source set'
-        assert_equal 'f', b_timing_999[:source],  'proper source set'
+        assert_nil a_timing[:tags],                       "no tags set"
+        assert_equal "f", b_timing_50[:tags][:hostname],  "proper tags set"
+        assert_equal "f", b_timing_999[:tags][:hostname], "proper tags set"
 
         # flushing clears percentages to track
         storage = @agg.instance_variable_get('@percentiles')

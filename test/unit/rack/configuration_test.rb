@@ -18,7 +18,7 @@ module Librato
       def test_environment_variable_config
         ENV['LIBRATO_USER'] = 'foo@bar.com'
         ENV['LIBRATO_TOKEN'] = 'api_key'
-        ENV['LIBRATO_TAGS'] = "hostname=metrics-web-stg-1"
+        ENV["LIBRATO_TAGS"] = "hostname=metrics-web-stg-1"
         ENV['LIBRATO_PROXY'] = 'http://localhost:8080'
         ENV['LIBRATO_SUITES'] = 'foo,bar'
         expected_tags = { hostname: "metrics-web-stg-1" }
@@ -43,9 +43,9 @@ module Librato
         config.tags = { hostname: "tessaract" }
         assert config.has_tags?
         config.tags = nil
-        assert !config.has_tags?, 'tags are not valid when nil'
+        assert !config.has_tags?, "tags are not valid when nil"
         config.tags = {}
-        assert !config.has_tags?, 'tags are not valid when empty'
+        assert !config.has_tags?, "tags are not valid when empty"
       end
 
       def test_prefix_change_notification
