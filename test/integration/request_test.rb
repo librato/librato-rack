@@ -26,11 +26,11 @@ class RequestTest < Minitest::Test
   def test_increment_total_and_status
     get '/'
     assert last_response.ok?
-    assert_equal 1, counters["rack.request"]
+    assert_equal 1, counters["rack.request.total"]
     assert_equal 1, counters.fetch("rack.request.status", tags: { status: 200, status_message: "OK" })
 
     get '/status/204'
-    assert_equal 2, counters["rack.request"]
+    assert_equal 2, counters["rack.request.total"]
     assert_equal 1, counters.fetch("rack.request.status", tags: { status: 200, status_message: "OK" }),         "should not increment"
     assert_equal 1, counters.fetch("rack.request.status", tags: { status: 204, status_message: "No Content" }), "should increment"
   end
