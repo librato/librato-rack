@@ -15,7 +15,7 @@ module Librato
         assert_equal 'second', tracker.collector.prefix
       end
 
-      def test_requires_explicit_source_on_heroku
+      def test_requires_tags_on_heroku
         config = Configuration.new
         config.user, config.token = 'foo', 'bar'
         @buffer = StringIO.new
