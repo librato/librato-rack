@@ -128,10 +128,13 @@ module Librato
         tags = {}
         tags.tap do
           if ENV["LIBRATO_TAGS"]
-            # e.g. hostname=metrics-web-stg-1,environment=staging
             ENV["LIBRATO_TAGS"].split(",")
               .map { |pairs| pairs.split("=") }
                 .map { |k,v| tags[k.to_sym] = v }
+
+            if tags.all? {|k,v| k.nil? || v.nil? }
+              raise InvalidTagConfiguration, "Invalid tag configuration format. Example: foo=bar,baz=qux"
+            end
           end
         end
       end

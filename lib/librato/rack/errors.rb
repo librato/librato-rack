@@ -5,5 +5,7 @@ module Librato
 
     class InvalidSuiteConfiguration < RuntimeError; end
 
+    class InvalidTagConfiguration < RuntimeError; end
+
   end
 end

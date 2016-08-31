@@ -49,6 +49,13 @@ module Librato
         assert !config.has_tags?, "tags are not valid when empty"
       end
 
+      def test_invalid_tags_env_var
+        ENV["LIBRATO_TAGS"] = "loljk"
+        assert_raises Librato::Rack::InvalidTagConfiguration do
+         config = Configuration.new
+        end
+      end
+
       def test_prefix_change_notification
         config = Configuration.new
         listener = listener_object
