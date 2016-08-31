@@ -64,9 +64,9 @@ class TrackerRemoteTest < Minitest::Test
     end
 
     def test_flush_should_send_measures_and_timings
-      tracker.timing  'request.time.total', 122.1
+      tracker.timing  'request.time', 122.1
       tracker.measure 'items_bought', 20
-      tracker.timing  'request.time.total', 81.3
+      tracker.timing  'request.time', 81.3
       tracker.timing  'jobs.queued', 5, tags: { hostname: 'worker.3' }
       @queued = tracker.queued
       tracker.flush
@@ -75,11 +75,11 @@ class TrackerRemoteTest < Minitest::Test
 
       # metrics are SSA, so should exist but won't have measurements yet
       metric_names = client.metrics.map { |m| m['name'] }
-      assert metric_names.include?('request.time.total'), 'request.time.total should be present'
+      assert metric_names.include?('request.time'), 'request.time should be present'
       assert metric_names.include?('items_bought'), 'request.time.db should be present'
 
-      assert_equal 2, queued('request.time.total', tags: tags)[:count]
-      assert_in_delta 203.4, queued('request.time.total', tags: tags)[:sum], 0.1
+      assert_equal 2, queued('request.time', tags: tags)[:count]
+      assert_in_delta 203.4, queued('request.time', tags: tags)[:sum], 0.1
 
       assert_equal 1, queued('items_bought', tags: tags)[:count]
       assert_in_delta 20, queued('items_bought', tags: tags)[:sum], 0.1
@@ -89,7 +89,7 @@ class TrackerRemoteTest < Minitest::Test
     end
 
     def test_flush_should_purge_measures_and_timings
-      tracker.timing  'request.time.total', 122.1
+      tracker.timing  'request.time', 122.1
       tracker.measure 'items_bought', 20
       tracker.flush
 

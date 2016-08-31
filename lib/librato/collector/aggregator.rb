@@ -130,7 +130,11 @@ module Librato
         keyname = event
 
         if options[:tags] && options[:tags].respond_to?(:each)
-          options[:tags].sort.each { |key, value| keyname = "#{keyname}#{SEPARATOR}#{key}#{SEPARATOR}#{value}" }
+          options[:tags].sort.each do |key, value|
+            key = key.is_a?(String) ? key.downcase.delete(' ') : key
+            value = value.is_a?(String) ? value.downcase.delete(' ') : value
+            keyname = "#{keyname}#{SEPARATOR}#{key}#{SEPARATOR}#{value}"
+          end
         end
 
         @percentiles[keyname] ||= {

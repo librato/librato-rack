@@ -36,7 +36,11 @@ module Librato
       def fetch(key, options={})
         key = key.to_s
         if options[:tags] && options[:tags].respond_to?(:each)
-          options[:tags].sort.each { |k, v| key = "#{key}#{SEPARATOR}#{k}#{SEPARATOR}#{v}" }
+          options[:tags].sort.each do |k, v|
+            k = k.is_a?(String) ? k.downcase.delete(' ') : k
+            v = v.is_a?(String) ? v.downcase.delete(' ') : v
+            key = "#{key}#{SEPARATOR}#{k}#{SEPARATOR}#{v}"
+          end
         end
         @lock.synchronize do
           if @cache[key] && @cache[key].respond_to?(:each)
@@ -83,7 +87,11 @@ module Librato
         end
         by = options[:by] || 1
         if options[:tags] && options[:tags].respond_to?(:each)
-          options[:tags].sort.each { |key, value| metric = "#{metric}#{SEPARATOR}#{key}#{SEPARATOR}#{value}" }
+          options[:tags].sort.each do |key, value|
+            key = key.is_a?(String) ? key.downcase.delete(' ') : key
+            value = value.is_a?(String) ? value.downcase.delete(' ') : value
+            metric = "#{metric}#{SEPARATOR}#{key}#{SEPARATOR}#{value}"
+          end
         end
         tags.merge!(options[:tags]) if options[:tags]
         if options[:sporadic]
