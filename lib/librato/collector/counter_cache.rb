@@ -33,13 +33,18 @@ module Librato
         @lock.synchronize { @cache.clear }
       end
 
-
       def fetch(key, options={})
-        if options[:source]
-          key = "#{key}#{SEPARATOR}#{options[:source]}"
+        key = key.to_s
+        if options[:tags] && options[:tags].respond_to?(:each)
+          options[:tags].sort.each { |k, v| key = "#{key}#{SEPARATOR}#{k}#{SEPARATOR}#{v}" }
         end
         @lock.synchronize do
-          @cache[key.to_s]
+          if @cache[key] && @cache[key].respond_to?(:each)
+            # return value for backwards compatibility
+            @cache[key][:value]
+          else
+            @cache[key]
+          end
         end
       end
 
@@ -53,9 +58,8 @@ module Librato
           reset_cache unless opts[:preserve]
         end
         counts.each do |metric, value|
-          metric, source = metric.split(SEPARATOR)
-          if source
-            queue.add metric => {value: value, source: source}
+          if value.respond_to?(:each)
+            queue.add value.delete(:name) => value
           else
             queue.add metric => value
           end
@@ -74,22 +78,26 @@ module Librato
       #   increment :foo, :source => user.id
       #
       def increment(counter, options={})
+        tags = {}
+        metric = counter.to_s
         if options.is_a?(Fixnum)
           # suppport legacy style
           options = {by: options}
         end
         by = options[:by] || 1
-        if options[:source]
-          metric = "#{counter}#{SEPARATOR}#{options[:source]}"
-        else
-          metric = counter.to_s
+        if options[:tags] && options[:tags].respond_to?(:each)
+          options[:tags].sort.each { |key, value| metric = "#{metric}#{SEPARATOR}#{key}#{SEPARATOR}#{value}" }
         end
+        tags.merge!(options[:tags]) if options[:tags]
         if options[:sporadic]
           make_sporadic(metric)
         end
         @lock.synchronize do
-          @cache[metric] ||= 0
-          @cache[metric] += by
+          @cache[metric] = {} unless @cache[metric]
+          @cache[metric][:name] ||= counter.to_s
+          @cache[metric][:value] ||= 0
+          @cache[metric][:value] += by
+          @cache[metric][:tags] = tags unless tags.empty?
         end
       end
 
@@ -104,7 +112,7 @@ module Librato
         @sporadics.each { |metric| @cache.delete(metric) }
         @sporadics.clear
         # reset all continuous source/metric pairs to 0
-        @cache.each_key { |key| @cache[key] = 0 }
+        @cache.each_key { |key| @cache[key] = { value: 0 } }
       end
 
     end

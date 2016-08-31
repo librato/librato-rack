@@ -35,7 +35,7 @@ class TrackerRemoteTest < Minitest::Test
       tracker.flush
 
       # metrics are SSA, so should exist but won't have measurements yet
-      metric_names = client.list.map { |m| m['name'] }
+      metric_names = client.metrics.map { |m| m['name'] }
       assert metric_names.include?('foo'), 'foo should be present'
       assert metric_names.include?('bar'), 'bar should be present'
 
@@ -70,7 +70,7 @@ class TrackerRemoteTest < Minitest::Test
       tracker.flush
 
       # metrics are SSA, so should exist but won't have measurements yet
-      metric_names = client.list.map { |m| m['name'] }
+      metric_names = client.metrics.map { |m| m['name'] }
       assert metric_names.include?('request.time.total'), 'request.time.total should be present'
       assert metric_names.include?('items_bought'), 'request.time.db should be present'
 
@@ -101,7 +101,7 @@ class TrackerRemoteTest < Minitest::Test
       @queued = tracker.queued
       tracker.flush
 
-      metric_names = client.list.map { |m| m['name'] }
+      metric_names = client.metrics.map { |m| m['name'] }
       assert metric_names.include?('testyprefix.mytime'),
         'testyprefix.mytime should be present'
       assert metric_names.include?('testyprefix.mycount'), '
@@ -124,7 +124,7 @@ class TrackerRemoteTest < Minitest::Test
       tracker.measure :boo, 2.12
       tracker.flush
 
-      metric_names = client.list.map { |m| m['name'] }
+      metric_names = client.metrics.map { |m| m['name'] }
       assert metric_names.include?('boo')
     end
 
@@ -135,7 +135,7 @@ class TrackerRemoteTest < Minitest::Test
       @queued = tracker.queued
       tracker.flush
 
-      metric_names = client.list.map { |m| m['name'] }
+      metric_names = client.metrics.map { |m| m['name'] }
       assert metric_names.include?('foo')
 
       # should be sending value for foo
@@ -143,16 +143,16 @@ class TrackerRemoteTest < Minitest::Test
     end
 
     def test_flush_handles_invalid_sources_names
-      tracker.increment :foo, source: 'atreides'         # valid
-      tracker.increment :bar, source: 'glébnöst'         # invalid
-      tracker.measure 'baz', 2.25, source: 'b/l/ak/nok'  # invalid
+      tracker.increment :foo, tags: { hostname: 'atreides' }        # valid
+      tracker.increment :bar, tags: { hostname: 'glébnöst' }        # invalid
+      tracker.measure 'baz', 2.25, tags: { hostname: 'b/l/ak/nok' } # invalid
       @queued = tracker.queued
       tracker.flush
 
-      metric_names = client.list.map { |m| m['name'] }
+      metric_names = client.metrics.map { |m| m['name'] }
       assert metric_names.include?('foo')
 
-      assert_equal 1.0, queued('foo', source: 'atreides')
+      assert_equal 1.0, queued('foo', tags: { hostname: 'atreides' })
     end
 
     private
@@ -197,8 +197,8 @@ class TrackerRemoteTest < Minitest::Test
     end
 
     def delete_all_metrics
-      metric_names = client.list.map { |metric| metric['name'] }
-      client.delete(*metric_names) if !metric_names.empty?
+      metric_names = client.metrics.map { |metric| metric['name'] }
+      client.delete_metrics(*metric_names) if !metric_names.empty?
     end
 
   else

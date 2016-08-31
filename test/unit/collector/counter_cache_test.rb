@@ -25,32 +25,32 @@ module Librato
       def test_custom_sources
         cc = CounterCache.new
 
-        cc.increment :foo, :source => 'bar'
-        assert_equal 1, cc.fetch(:foo, :source => 'bar')
+        cc.increment :foo, tags: { hostname: 'bar' }
+        assert_equal 1, cc.fetch(:foo, tags: { hostname: 'bar' })
 
         # symbols also work
-        cc.increment :foo, :source => :baz
-        assert_equal 1, cc.fetch(:foo, :source => :baz)
+        cc.increment :foo, tags: { hostname: :baz }
+        assert_equal 1, cc.fetch(:foo, tags: { hostname: :baz })
 
         # strings and symbols are interchangable
-        cc.increment :foo, :source => :bar
-        assert_equal 2, cc.fetch(:foo, :source => 'bar')
+        cc.increment :foo, tags: { hostname: :bar }
+        assert_equal 2, cc.fetch(:foo, tags: { hostname: 'bar' })
 
         # custom source and custom increment
-        cc.increment :foo, :source => 'boombah', :by => 10
-        assert_equal 10, cc.fetch(:foo, :source => 'boombah')
+        cc.increment :foo, tags: { hostname: 'boombah' }, by: 10
+        assert_equal 10, cc.fetch(:foo, tags: { hostname: 'boombah' })
       end
 
       def test_sporadic
         cc = CounterCache.new
 
         cc.increment :foo
-        cc.increment :foo, :source => 'bar'
+        cc.increment :foo, tags: { hostname: 'bar' }
 
         cc.increment :baz, :sporadic => true
-        cc.increment :baz, :source => 118, :sporadic => true
+        cc.increment :baz, tags: { hostname: 118 }, sporadic: true
         assert_equal 1, cc[:baz]
-        assert_equal 1, cc.fetch(:baz, :source => 118)
+        assert_equal 1, cc.fetch(:baz, tags: { hostname: 118 })
 
         # persist values once
         cc.flush_to(Librato::Metrics::Queue.new)
@@ -74,20 +74,21 @@ module Librato
 
       def test_flushing
         cc = CounterCache.new
+        tags = { hostname: 'foobar' }
 
         cc.increment :foo
         cc.increment :bar, :by => 2
-        cc.increment :foo, :source => 'foobar'
-        cc.increment :foo, :source => 'foobar', :by => 3
+        cc.increment :foo, tags: tags
+        cc.increment :foo, tags: tags, by: 3
 
         q = Librato::Metrics::Queue.new
         cc.flush_to(q)
 
         expected = Set.new [{:name=>"foo", :value=>1},
-                    {:name=>"foo", :value=>4, :source=>"foobar"},
+                    {:name=>"foo", :value=>4, :tags=>tags},
                     {:name=>"bar", :value=>2}]
-        queued = Set.new(q.gauges)
-        queued.each { |hash| hash.delete(:measure_time) }
+        queued = Set.new(q.measurements)
+        queued.each { |hash| hash.delete(:time) }
         assert_equal queued, expected
       end
 
