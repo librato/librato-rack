@@ -115,7 +115,7 @@ class TrackerRemoteTest < Minitest::Test
       assert metric_names.include?('testyprefix.mycount'), '
         testyprefix.mycount should be present'
 
-      assert_equal 1, queued('testyprefix.mytime', tags: tags)[:count]
+      assert_equal 1, queued("testyprefix.mytime", tags: tags)[:count]
       assert_equal 4, queued('testyprefix.mycount')
     end
 
@@ -160,7 +160,7 @@ class TrackerRemoteTest < Minitest::Test
       metric_names = client.metrics.map { |m| m['name'] }
       assert metric_names.include?('foo')
 
-      assert_equal 1.0, queued('foo', tags: { hostname: "atreides" })
+      assert_equal 1.0, queued("foo", tags: { hostname: "atreides" })
     end
 
     private

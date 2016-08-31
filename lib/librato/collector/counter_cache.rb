@@ -37,8 +37,8 @@ module Librato
         key = key.to_s
         if options[:tags] && options[:tags].respond_to?(:each)
           options[:tags].sort.each do |k, v|
-            k = k.is_a?(String) ? k.downcase.delete(' ') : k
-            v = v.is_a?(String) ? v.downcase.delete(' ') : v
+            k = k.is_a?(String) ? k.downcase.delete(" ") : k
+            v = v.is_a?(String) ? v.downcase.delete(" ") : v
             key = "#{key}#{SEPARATOR}#{k}#{SEPARATOR}#{v}"
           end
         end

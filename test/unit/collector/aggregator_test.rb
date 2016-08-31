@@ -89,7 +89,7 @@ module Librato
         tags_1 = { hostname: "douglas_adams" }
         # tags are kept separate
         @agg.measure 'meaning.of.life', 1
-        @agg.measure 'meaning.of.life', 42, tags: tags_1
+        @agg.measure "meaning.of.life", 42, tags: tags_1
         assert_equal 1.0, @agg.fetch('meaning.of.life')[:sum]
         assert_equal 42.0, @agg.fetch("meaning.of.life", tags: tags_1)[:sum]
 

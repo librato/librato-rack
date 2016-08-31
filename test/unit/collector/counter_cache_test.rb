@@ -25,8 +25,8 @@ module Librato
       def test_custom_sources
         cc = CounterCache.new
 
-        cc.increment :foo, tags: { hostname: 'bar' }
-        assert_equal 1, cc.fetch(:foo, tags: { hostname: 'bar' })
+        cc.increment :foo, tags: { hostname: "bar" }
+        assert_equal 1, cc.fetch(:foo, tags: { hostname: "bar" })
 
         # symbols also work
         cc.increment :foo, tags: { hostname: :baz }
@@ -34,18 +34,18 @@ module Librato
 
         # strings and symbols are interchangable
         cc.increment :foo, tags: { hostname: :bar }
-        assert_equal 2, cc.fetch(:foo, tags: { hostname: 'bar' })
+        assert_equal 2, cc.fetch(:foo, tags: { hostname: "bar" })
 
         # custom source and custom increment
-        cc.increment :foo, tags: { hostname: 'boombah' }, by: 10
-        assert_equal 10, cc.fetch(:foo, tags: { hostname: 'boombah' })
+        cc.increment :foo, tags: { hostname: "boombah" }, by: 10
+        assert_equal 10, cc.fetch(:foo, tags: { hostname: "boombah" })
       end
 
       def test_sporadic
         cc = CounterCache.new
 
         cc.increment :foo
-        cc.increment :foo, tags: { hostname: 'bar' }
+        cc.increment :foo, tags: { hostname: "bar" }
 
         cc.increment :baz, :sporadic => true
         cc.increment :baz, tags: { hostname: 118 }, sporadic: true
@@ -57,11 +57,11 @@ module Librato
 
         # normal values persist
         assert_equal 0, cc[:foo]
-        assert_equal 0, cc.fetch(:foo, :source => 'bar')
+        assert_equal 0, cc.fetch(:foo, tags: { hostname: "bar" })
 
         # sporadic do not
         assert_equal nil, cc[:baz]
-        assert_equal nil, cc.fetch(:baz, :source => 118)
+        assert_equal nil, cc.fetch(:baz, tags: { hostname: 118 })
 
         # add a different sporadic metric
         cc.increment :bazoom, :sporadic => true
@@ -74,7 +74,7 @@ module Librato
 
       def test_flushing
         cc = CounterCache.new
-        tags = { hostname: 'foobar' }
+        tags = { hostname: "foobar" }
 
         cc.increment :foo
         cc.increment :bar, :by => 2
