@@ -13,6 +13,7 @@ module Librato
         assert_equal 60, config.flush_interval
         assert_equal Librato::Metrics.api_endpoint, config.api_endpoint
         assert_equal '', config.suites
+        assert_equal Hash.new, config.tags
       end
 
       def test_environment_variable_config

@@ -22,7 +22,7 @@ module Librato
         assert_equal 9, cc['foo']
       end
 
-      def test_custom_sources
+      def test_custom_tags
         cc = CounterCache.new
 
         cc.increment :foo, tags: { hostname: "bar" }

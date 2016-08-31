@@ -24,7 +24,7 @@ class NoSuitesTest < Minitest::Test
   def test_increment_total
     get '/'
     assert last_response.ok?
-    assert_nil counters["rack.request.total"], 'should not increment'
+    assert_nil counters["rack.request"], "should not increment"
   end
 
   def test_track_queue_time
@@ -36,16 +36,15 @@ class NoSuitesTest < Minitest::Test
   def test_increment_status
     get '/'
     assert last_response.ok?
-    assert_nil counters["rack.request.status.200"], 'should not increment'
-    assert_nil counters["rack.request.status.2xx"], 'should not increment'
+    assert_nil counters["rack.request.status"], "should not increment"
   end
 
   def test_track_http_method_info
     get '/'
-    assert_nil counters['rack.request.method.get']
+    assert_nil counters["rack.request.method"]
 
     post '/'
-    assert_nil counters['rack.request.method.post']
+    assert_nil counters["rack.request.method"]
   end
 
   def test_increment_exception

@@ -53,6 +53,13 @@ class CustomTest < Minitest::Test
     assert_equal 1, aggregate['did.a.timing'][:count]
   end
 
+  def test_tags
+    tags = { region: "us-east-1" }
+    get '/tags'
+    assert_equal 1, counters.fetch("requests", tags: tags)
+    assert_equal 1, aggregate.fetch("requests.time", tags: tags)[:count]
+  end
+
   private
 
   def aggregate

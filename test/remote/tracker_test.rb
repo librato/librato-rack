@@ -150,7 +150,7 @@ class TrackerRemoteTest < Minitest::Test
       assert_equal 1.0, queued('foo')
     end
 
-    def test_flush_handles_invalid_sources_names
+    def test_flush_handles_invalid_tags
       tracker.increment :foo, tags: { hostname: "atreides" }        # valid
       tracker.increment :bar, tags: { hostname: "glébnöst" }        # invalid
       tracker.measure 'baz', 2.25, tags: { hostname: "b/l/ak/nok" } # invalid
