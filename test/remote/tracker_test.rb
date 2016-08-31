@@ -30,7 +30,7 @@ class TrackerRemoteTest < Minitest::Test
       tracker.increment :foo                                    # simple
       tracker.increment :bar, 2                                 # specified
       tracker.increment :foo                                    # multincrement
-      tracker.increment :foo, tags: { hostname: 'baz' }, by: 3  # custom source
+      tracker.increment :foo, tags: { hostname: "baz" }, by: 3  # custom source
       @queued = tracker.queued
       tracker.flush
 
@@ -46,7 +46,7 @@ class TrackerRemoteTest < Minitest::Test
       assert_equal 2, queued('foo')
 
       # custom source
-      assert_equal 3, queued('foo', tags: { hostname: 'baz' })
+      assert_equal 3, queued("foo", tags: { hostname: "baz" })
 
       # different counter
       assert_equal 2, queued('bar')
@@ -64,10 +64,10 @@ class TrackerRemoteTest < Minitest::Test
     end
 
     def test_flush_should_send_measures_and_timings
-      tracker.timing  'request.time', 122.1
+      tracker.timing  "request.time", 122.1
       tracker.measure 'items_bought', 20
-      tracker.timing  'request.time', 81.3
-      tracker.timing  'jobs.queued', 5, tags: { hostname: 'worker.3' }
+      tracker.timing  "request.time", 81.3
+      tracker.timing  "jobs.queued", 5, tags: { hostname: "worker.3" }
       @queued = tracker.queued
       tracker.flush
 
@@ -78,18 +78,18 @@ class TrackerRemoteTest < Minitest::Test
       assert metric_names.include?('request.time'), 'request.time should be present'
       assert metric_names.include?('items_bought'), 'request.time.db should be present'
 
-      assert_equal 2, queued('request.time', tags: tags)[:count]
-      assert_in_delta 203.4, queued('request.time', tags: tags)[:sum], 0.1
+      assert_equal 2, queued("request.time", tags: tags)[:count]
+      assert_in_delta 203.4, queued("request.time", tags: tags)[:sum], 0.1
 
-      assert_equal 1, queued('items_bought', tags: tags)[:count]
-      assert_in_delta 20, queued('items_bought', tags: tags)[:sum], 0.1
+      assert_equal 1, queued("items_bought", tags: tags)[:count]
+      assert_in_delta 20, queued("items_bought", tags: tags)[:sum], 0.1
 
-      assert_equal 1, queued('jobs.queued', tags: { hostname: 'worker.3' })[:count]
-      assert_in_delta 5, queued('jobs.queued', tags: { hostname: 'worker.3' })[:sum], 0.1
+      assert_equal 1, queued("jobs.queued", tags: { hostname: "worker.3" })[:count]
+      assert_in_delta 5, queued("jobs.queued", tags: { hostname: "worker.3" })[:sum], 0.1
     end
 
     def test_flush_should_purge_measures_and_timings
-      tracker.timing  'request.time', 122.1
+      tracker.timing  "request.time", 122.1
       tracker.measure 'items_bought', 20
       tracker.flush
 
@@ -98,10 +98,10 @@ class TrackerRemoteTest < Minitest::Test
     end
 
     def test_flush_respects_prefix
-      tags = { hostname: 'metrics-web-stg-1' }
+      tags = { hostname: "metrics-web-stg-1" }
       config.prefix = 'testyprefix'
 
-      tracker.timing 'mytime', 221.1, tags: tags
+      tracker.timing "mytime", 221.1, tags: tags
       tracker.increment 'mycount', 4
       @queued = tracker.queued
       tracker.flush
@@ -151,16 +151,16 @@ class TrackerRemoteTest < Minitest::Test
     end
 
     def test_flush_handles_invalid_sources_names
-      tracker.increment :foo, tags: { hostname: 'atreides' }        # valid
-      tracker.increment :bar, tags: { hostname: 'glébnöst' }        # invalid
-      tracker.measure 'baz', 2.25, tags: { hostname: 'b/l/ak/nok' } # invalid
+      tracker.increment :foo, tags: { hostname: "atreides" }        # valid
+      tracker.increment :bar, tags: { hostname: "glébnöst" }        # invalid
+      tracker.measure 'baz', 2.25, tags: { hostname: "b/l/ak/nok" } # invalid
       @queued = tracker.queued
       tracker.flush
 
       metric_names = client.metrics.map { |m| m['name'] }
       assert metric_names.include?('foo')
 
-      assert_equal 1.0, queued('foo', tags: { hostname: 'atreides' })
+      assert_equal 1.0, queued('foo', tags: { hostname: "atreides" })
     end
 
     private

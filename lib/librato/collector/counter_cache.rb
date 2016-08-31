@@ -87,10 +87,10 @@ module Librato
         end
         by = options[:by] || 1
         if options[:tags] && options[:tags].respond_to?(:each)
-          options[:tags].sort.each do |key, value|
-            key = key.is_a?(String) ? key.downcase.delete(' ') : key
-            value = value.is_a?(String) ? value.downcase.delete(' ') : value
-            metric = "#{metric}#{SEPARATOR}#{key}#{SEPARATOR}#{value}"
+          options[:tags].sort.each do |k, v|
+            k = k.is_a?(String) ? k.downcase.delete(' ') : k
+            v = v.is_a?(String) ? v.downcase.delete(' ') : v
+            metric = "#{metric}#{SEPARATOR}#{k}#{SEPARATOR}#{v}"
           end
         end
         tags.merge!(options[:tags]) if options[:tags]

@@ -26,13 +26,13 @@ class RequestTest < Minitest::Test
   def test_increment_total_and_status
     get '/'
     assert last_response.ok?
-    assert_equal 1, counters['rack.request']
-    assert_equal 1, counters.fetch('rack.request.status', tags: { status: 200, status_message: 'OK' })
+    assert_equal 1, counters["rack.request"]
+    assert_equal 1, counters.fetch("rack.request.status", tags: { status: 200, status_message: "OK" })
 
     get '/status/204'
-    assert_equal 2, counters['rack.request']
-    assert_equal 1, counters.fetch('rack.request.status', tags: { status: 200, status_message: 'OK' }),         'should not increment'
-    assert_equal 1, counters.fetch('rack.request.status', tags: { status: 204, status_message: 'No Content' }), 'should increment'
+    assert_equal 2, counters["rack.request"]
+    assert_equal 1, counters.fetch("rack.request.status", tags: { status: 200, status_message: "OK" }),         "should not increment"
+    assert_equal 1, counters.fetch("rack.request.status", tags: { status: 204, status_message: "No Content" }), "should increment"
   end
 
   def test_request_times
@@ -46,19 +46,19 @@ class RequestTest < Minitest::Test
     assert aggregate.fetch("rack.request.time", tags: @tags, percentile: 95) > 0.0
 
     # status specific
-    assert_equal 1, aggregate.fetch('rack.request.status.time', tags: { status: 200, status_message: 'OK' })[:count]
+    assert_equal 1, aggregate.fetch("rack.request.status.time", tags: { status: 200, status_message: "OK" })[:count]
   end
 
   def test_track_http_method_info
     get '/'
 
-    assert_equal 1, counters.fetch('rack.request.method', tags: { method: 'GET' })
-    assert_equal 1, aggregate.fetch('rack.request.method.time', tags: { method: 'get' })[:count]
+    assert_equal 1, counters.fetch("rack.request.method", tags: { method: "GET" })
+    assert_equal 1, aggregate.fetch("rack.request.method.time", tags: { method: "get" })[:count]
 
     post '/'
 
-    assert_equal 1, counters.fetch('rack.request.method', tags: { method: 'POST' })
-    assert_equal 1, aggregate.fetch('rack.request.method.time', tags: { method: 'post' })[:count]
+    assert_equal 1, counters.fetch("rack.request.method", tags: { method: "POST" })
+    assert_equal 1, aggregate.fetch("rack.request.method.time", tags: { method: "post" })[:count]
   end
 
   def test_track_exceptions

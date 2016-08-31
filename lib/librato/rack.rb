@@ -38,7 +38,7 @@ module Librato
   #
   class Rack
     RECORD_RACK_BODY = <<-'EOS'
-      tracker.increment 'rack.request'
+      tracker.increment "rack.request"
       group.timing    'time', duration, percentile: 95
       group.increment 'slow' if duration > 200.0
     EOS
@@ -48,14 +48,14 @@ module Librato
         status: status,
         status_message: ::Rack::Utils::HTTP_STATUS_CODES[status]
       }
-      tracker.increment 'rack.request.status', tags: status_tags
-      tracker.timing 'rack.request.status.time', duration, tags: status_tags
+      tracker.increment "rack.request.status", tags: status_tags
+      tracker.timing "rack.request.status.time", duration, tags: status_tags
     EOS
 
     RECORD_RACK_METHOD_BODY = <<-'EOS'
       method_tags = { method: http_method.downcase! }
-      tracker.increment 'rack.request.method', tags: method_tags
-      tracker.timing 'rack.request.method.time', duration, tags: method_tags
+      tracker.increment "rack.request.method", tags: method_tags
+      tracker.timing "rack.request.method.time", duration, tags: method_tags
     EOS
 
     attr_reader :config, :tracker
