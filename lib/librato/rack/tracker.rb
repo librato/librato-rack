@@ -77,6 +77,8 @@ module Librato
           log :debug, 'halting: credentials not present.'
         elsif config.autorun == false
           log :debug, 'halting: LIBRATO_AUTORUN disabled startup'
+        elsif qualified_tags.any? { |k,v| k.to_s !~ ValidatingQueue::TAGS_KEY_REGEX || v.to_s !~ ValidatingQueue::TAGS_VALUE_REGEX }
+          log :warn, "halting: '#{qualified_tags}' are invalid tags."
         elsif on_heroku && !config.has_tags?
           log :warn, 'halting: tags must be provided in configuration.'
         else

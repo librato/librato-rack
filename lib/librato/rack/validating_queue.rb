@@ -6,6 +6,8 @@ module Librato
     #
     class ValidatingQueue < Librato::Metrics::Queue
       METRIC_NAME_REGEX = /\A[-.:_\w]{1,255}\z/
+      TAGS_KEY_REGEX = /\A[-.:_\w]{1,64}\z/
+      TAGS_VALUE_REGEX = /\A[-.:_\w]{1,256}\z/
 
       attr_accessor :logger
 
@@ -13,8 +15,12 @@ module Librato
       def submit
         @queued[:measurements].delete_if do |entry|
           name = entry[:name].to_s
+          tags = entry[:tags]
           if name !~ METRIC_NAME_REGEX
             log :warn, "invalid metric name '#{name}', not sending."
+            true # delete
+          elsif tags && tags.any? { |k,v| k.to_s !~ TAGS_KEY_REGEX || v.to_s !~ TAGS_VALUE_REGEX }
+            log :warn, "halting: '#{tags}' are invalid tags."
             true # delete
           else
             false # preserve

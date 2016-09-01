@@ -46,6 +46,25 @@ module Librato
         ENV.delete('LIBRATO_AUTORUN')
       end
 
+      def test_invalid_tags_can_prevent_startup
+        ENV.delete("LIBRATO_TAGS")
+        config = Configuration.new
+        config.user, config.token = "foo", "bar"
+        @buffer = StringIO.new
+        config.log_target = @buffer
+        config.tags = { hostname: "!!!" }
+        tracker_1 = Tracker.new(config)
+
+        assert_equal false, tracker_1.send(:should_start?)
+        assert buffer_lines.to_s.include?("invalid tags")
+
+        config.tags = { "!!!": "metrics-web-stg-1" }
+        tracker_2 = Tracker.new(config)
+
+        assert_equal false, tracker_2.send(:should_start?)
+        assert buffer_lines.to_s.include?("invalid tags")
+      end
+
       def test_suite_configured
         ENV['LIBRATO_SUITES'] = 'abc,prq'
 
