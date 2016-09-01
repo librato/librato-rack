@@ -58,7 +58,7 @@ module Librato
         assert_equal false, tracker_1.send(:should_start?)
         assert buffer_lines.to_s.include?("invalid tags")
 
-        config.tags = { "!!!": "metrics-web-stg-1" }
+        config.tags = { "!!!" => "metrics-web-stg-1" }
         tracker_2 = Tracker.new(config)
 
         assert_equal false, tracker_2.send(:should_start?)
