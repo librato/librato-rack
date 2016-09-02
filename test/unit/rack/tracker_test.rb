@@ -47,7 +47,6 @@ module Librato
       end
 
       def test_invalid_tags_can_prevent_startup
-        ENV.delete("LIBRATO_TAGS")
         config = Configuration.new
         config.user, config.token = "foo", "bar"
         @buffer = StringIO.new
@@ -63,6 +62,8 @@ module Librato
 
         assert_equal false, tracker_2.send(:should_start?)
         assert buffer_lines.to_s.include?("invalid tags")
+
+        Librato::Metrics.client.clear_tags
       end
 
       def test_suite_configured
