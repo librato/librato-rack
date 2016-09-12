@@ -81,7 +81,7 @@ module Librato
         cc.increment :foo, tags: tags
         cc.increment :foo, tags: tags, by: 3
 
-        q = Librato::Metrics::Queue.new
+        q = Librato::Metrics::Queue.new(tags: { region: "us-east-1" })
         cc.flush_to(q)
 
         expected = Set.new [{:name=>"foo", :value=>1},

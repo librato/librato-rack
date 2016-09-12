@@ -62,8 +62,7 @@ module Librato
           reset_cache unless opts[:preserve]
         end
         counts.each do |metric, value|
-          metric = metric.split(SEPARATOR).first
-          queue.add metric => value
+          queue.add value[:name] => value
         end
       end
 

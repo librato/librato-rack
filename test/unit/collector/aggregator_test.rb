@@ -110,7 +110,7 @@ module Librato
         @agg.flush_to(q)
 
         expected = Set.new([
-          {:name=>"meaning.of.life", :count=>1, :sum=>1.0, :min=>1.0, :max=>1.0, :tags=>{:hostname=>"metrics-web-stg-1"}},
+          {:name=>"meaning.of.life", :count=>1, :sum=>1.0, :min=>1.0, :max=>1.0},
           {:name=>"meaning.of.life", :count=>1, :sum=>42.0, :min=>42.0, :max=>42.0, :tags=>tags}
         ])
         assert_equal expected, Set.new(q.queued[:measurements])
@@ -120,7 +120,7 @@ module Librato
         [1,2,3].each { |i| @agg.timing 'a.timing', i, percentile: 95 }
         [1,2,3].each { |i| @agg.timing "b.timing", i, tags: { hostname: "f" }, percentile: [50, 99.9] }
 
-        q = Librato::Metrics::Queue.new
+        q = Librato::Metrics::Queue.new(tags: { region: "us-east-1" })
         @agg.flush_to(q)
 
         queued = q.queued[:measurements]
