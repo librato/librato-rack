@@ -27,12 +27,12 @@ class RequestTest < Minitest::Test
     get '/'
     assert last_response.ok?
     assert_equal 1, counters["rack.request.total"]
-    assert_equal 1, counters.fetch("rack.request.status", tags: { status: 200, status_message: "OK" })
+    assert_equal 1, counters.fetch("rack.request.status", tags: { status: 200 })
 
     get '/status/204'
     assert_equal 2, counters["rack.request.total"]
-    assert_equal 1, counters.fetch("rack.request.status", tags: { status: 200, status_message: "OK" }),         "should not increment"
-    assert_equal 1, counters.fetch("rack.request.status", tags: { status: 204, status_message: "No Content" }), "should increment"
+    assert_equal 1, counters.fetch("rack.request.status", tags: { status: 200 }), "should not increment"
+    assert_equal 1, counters.fetch("rack.request.status", tags: { status: 204 }), "should increment"
   end
 
   def test_request_times
@@ -46,7 +46,7 @@ class RequestTest < Minitest::Test
     assert aggregate.fetch("rack.request.time", tags: @tags, percentile: 95) > 0.0
 
     # status specific
-    assert_equal 1, aggregate.fetch("rack.request.status.time", tags: { status: 200, status_message: "OK" })[:count]
+    assert_equal 1, aggregate.fetch("rack.request.status.time", tags: { status: 200 })[:count]
   end
 
   def test_track_http_method_info

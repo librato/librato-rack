@@ -44,10 +44,7 @@ module Librato
     EOS
 
     RECORD_RACK_STATUS_BODY = <<-'EOS'
-      status_tags = {
-        status: status,
-        status_message: ::Rack::Utils::HTTP_STATUS_CODES[status]
-      }
+      status_tags = { status: status }
       tracker.increment "rack.request.status", tags: status_tags
       tracker.timing "rack.request.status.time", duration, tags: status_tags
     EOS
