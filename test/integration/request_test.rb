@@ -26,13 +26,13 @@ class RequestTest < Minitest::Test
   def test_increment_total_and_status
     get '/'
     assert last_response.ok?
-    assert_equal 1, counters["rack.request.total"]
-    assert_equal 1, counters.fetch("rack.request.status", tags: { status: 200 })
+    assert_equal 1, counters["rack.request.total"][:value]
+    assert_equal 1, counters.fetch("rack.request.status", tags: { status: 200 })[:value]
 
     get '/status/204'
-    assert_equal 2, counters["rack.request.total"]
-    assert_equal 1, counters.fetch("rack.request.status", tags: { status: 200 }), "should not increment"
-    assert_equal 1, counters.fetch("rack.request.status", tags: { status: 204 }), "should increment"
+    assert_equal 2, counters["rack.request.total"][:value]
+    assert_equal 1, counters.fetch("rack.request.status", tags: { status: 200 })[:value], "should not increment"
+    assert_equal 1, counters.fetch("rack.request.status", tags: { status: 204 })[:value], "should increment"
   end
 
   def test_request_times
@@ -52,12 +52,12 @@ class RequestTest < Minitest::Test
   def test_track_http_method_info
     get '/'
 
-    assert_equal 1, counters.fetch("rack.request.method", tags: { method: "GET" })
+    assert_equal 1, counters.fetch("rack.request.method", tags: { method: "GET" })[:value]
     assert_equal 1, aggregate.fetch("rack.request.method.time", tags: { method: "get" })[:count]
 
     post '/'
 
-    assert_equal 1, counters.fetch("rack.request.method", tags: { method: "POST" })
+    assert_equal 1, counters.fetch("rack.request.method", tags: { method: "POST" })[:value]
     assert_equal 1, aggregate.fetch("rack.request.method.time", tags: { method: "post" })[:count]
   end
 
@@ -67,12 +67,12 @@ class RequestTest < Minitest::Test
     rescue RuntimeError => e
       raise unless e.message == 'exception raised!'
     end
-    assert_equal 1, counters["rack.request.exceptions"]
+    assert_equal 1, counters["rack.request.exceptions"][:value]
   end
 
   def test_track_slow_requests
     get '/slow'
-    assert_equal 1, counters["rack.request.slow"]
+    assert_equal 1, counters["rack.request.slow"][:value]
   end
 
   private

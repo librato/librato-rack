@@ -21,7 +21,7 @@ class SuitesTest < Minitest::Test
     assert last_response.ok?
 
     # rack.request metrics (rack suite) should get logged
-    assert_equal 1, counters["rack.request.total"]
+    assert_equal 1, counters["rack.request.total"][:value]
     assert_equal 1, aggregate["rack.request.time"][:count]
 
     # rack.request.method metrics (rack_method suite) should not get logged

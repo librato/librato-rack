@@ -25,9 +25,9 @@ class CustomTest < Minitest::Test
 
   def test_increment
     get '/increment'
-    assert_equal 1, counters[:hits]
+    assert_equal 1, counters[:hits][:value]
     2.times { get '/increment' }
-    assert_equal 3, counters[:hits]
+    assert_equal 3, counters[:hits][:value]
   end
 
   def test_measure
@@ -49,14 +49,14 @@ class CustomTest < Minitest::Test
 
   def test_grouping
     get '/group'
-    assert_equal 1, counters['did.a.thing']
+    assert_equal 1, counters['did.a.thing'][:value]
     assert_equal 1, aggregate['did.a.timing'][:count]
   end
 
   def test_tags
     tags = { region: "us-east-1" }
     get '/tags'
-    assert_equal 1, counters.fetch("requests", tags: tags)
+    assert_equal 1, counters.fetch("requests", tags: tags)[:value]
     assert_equal 1, aggregate.fetch("requests.time", tags: tags)[:count]
   end
 

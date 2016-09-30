@@ -14,8 +14,8 @@ module Librato
           g.increment :bar
           g.increment :baz, tags: @tags
         end
-        assert_equal 1, collector.counters['foo.bar']
-        assert_equal 1, collector.counters.fetch("foo.baz", tags: @tags)
+        assert_equal 1, collector.counters['foo.bar'][:value]
+        assert_equal 1, collector.counters.fetch("foo.baz", tags: @tags)[:value]
       end
 
       def test_measure
@@ -51,7 +51,7 @@ module Librato
             b.increment :baz, 2
           end
         end
-        assert_equal 2, collector.counters['foo.bar.baz']
+        assert_equal 2, collector.counters['foo.bar.baz'][:value]
       end
 
     end

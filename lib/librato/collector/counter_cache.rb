@@ -1,3 +1,5 @@
+require "json"
+
 module Librato
   class Collector
     # maintains storage of a set of incrementable, counter-like
@@ -42,14 +44,7 @@ module Librato
             key = "#{key}#{SEPARATOR}#{k}#{SEPARATOR}#{v}"
           end
         end
-        @lock.synchronize do
-          if @cache[key] && @cache[key].respond_to?(:each)
-            # return value for backwards compatibility
-            @cache[key][:value]
-          else
-            @cache[key]
-          end
-        end
+        @lock.synchronize { @cache[key] }
       end
 
       # transfer all measurements to queue and reset internal status
@@ -58,11 +53,12 @@ module Librato
         @lock.synchronize do
           # work off of a duplicate data set so we block for
           # as little time as possible
-          counts = @cache.dup
+          # requires a deep copy of data set
+          counts = JSON.parse(@cache.dup.to_json, symbolize_names: true)
           reset_cache unless opts[:preserve]
         end
         counts.each do |metric, value|
-          metric = metric.split(SEPARATOR).first
+          metric = metric.to_s.split(SEPARATOR).first
           queue.add metric => value
         end
       end
@@ -79,7 +75,6 @@ module Librato
       #   increment :foo, :source => user.id
       #
       def increment(counter, options={})
-        tags = {}
         metric = counter.to_s
         if options.is_a?(Fixnum)
           # suppport legacy style
@@ -93,7 +88,6 @@ module Librato
             metric = "#{metric}#{SEPARATOR}#{k}#{SEPARATOR}#{v}"
           end
         end
-        tags.merge!(options[:tags]) if options[:tags]
         if options[:sporadic]
           make_sporadic(metric)
         end
@@ -102,7 +96,7 @@ module Librato
           @cache[metric][:name] ||= counter.to_s
           @cache[metric][:value] ||= 0
           @cache[metric][:value] += by
-          @cache[metric][:tags] = tags unless tags.empty?
+          @cache[metric][:tags] = options[:tags] if options[:tags]
         end
       end
 
@@ -117,7 +111,7 @@ module Librato
         @sporadics.each { |metric| @cache.delete(metric) }
         @sporadics.clear
         # reset all continuous source/metric pairs to 0
-        @cache.each_key { |key| @cache[key] = { value: 0 } }
+        @cache.each_key { |key| @cache[key][:value] = 0 }
       end
 
     end

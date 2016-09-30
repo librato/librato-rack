@@ -16,7 +16,7 @@ module Librato
         g.increment :bar
         g.measure :baz, 23, tags: tags
       end
-      assert_equal 1, collector.counters["foo.bar"]
+      assert_equal 1, collector.counters["foo.bar"][:value]
       assert_equal 23, collector.aggregate.fetch("foo.baz", tags: tags)[:sum]
     end
 

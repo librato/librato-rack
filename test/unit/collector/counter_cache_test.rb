@@ -7,38 +7,38 @@ module Librato
       def test_basic_operations
         cc = CounterCache.new
         cc.increment :foo
-        assert_equal 1, cc[:foo]
+        assert_equal 1, cc[:foo][:value]
 
         # accepts optional argument
         cc.increment :foo, :by => 5
-        assert_equal 6, cc[:foo]
+        assert_equal 6, cc[:foo][:value]
 
         # legacy style
         cc.increment :foo, 2
-        assert_equal 8, cc[:foo]
+        assert_equal 8, cc[:foo][:value]
 
         # strings or symbols work
         cc.increment 'foo'
-        assert_equal 9, cc['foo']
+        assert_equal 9, cc['foo'][:value]
       end
 
       def test_custom_tags
         cc = CounterCache.new
 
         cc.increment :foo, tags: { hostname: "bar" }
-        assert_equal 1, cc.fetch(:foo, tags: { hostname: "bar" })
+        assert_equal 1, cc.fetch(:foo, tags: { hostname: "bar" })[:value]
 
         # symbols also work
         cc.increment :foo, tags: { hostname: :baz }
-        assert_equal 1, cc.fetch(:foo, tags: { hostname: :baz })
+        assert_equal 1, cc.fetch(:foo, tags: { hostname: :baz })[:value]
 
         # strings and symbols are interchangable
         cc.increment :foo, tags: { hostname: :bar }
-        assert_equal 2, cc.fetch(:foo, tags: { hostname: "bar" })
+        assert_equal 2, cc.fetch(:foo, tags: { hostname: "bar" })[:value]
 
         # custom source and custom increment
         cc.increment :foo, tags: { hostname: "boombah" }, by: 10
-        assert_equal 10, cc.fetch(:foo, tags: { hostname: "boombah" })
+        assert_equal 10, cc.fetch(:foo, tags: { hostname: "boombah" })[:value]
       end
 
       def test_sporadic
@@ -49,15 +49,15 @@ module Librato
 
         cc.increment :baz, :sporadic => true
         cc.increment :baz, tags: { hostname: 118 }, sporadic: true
-        assert_equal 1, cc[:baz]
-        assert_equal 1, cc.fetch(:baz, tags: { hostname: 118 })
+        assert_equal 1, cc[:baz][:value]
+        assert_equal 1, cc.fetch(:baz, tags: { hostname: 118 })[:value]
 
         # persist values once
         cc.flush_to(Librato::Metrics::Queue.new)
 
         # normal values persist
-        assert_equal 0, cc[:foo]
-        assert_equal 0, cc.fetch(:foo, tags: { hostname: "bar" })
+        assert_equal 0, cc[:foo][:value]
+        assert_equal 0, cc.fetch(:foo, tags: { hostname: "bar" })[:value]
 
         # sporadic do not
         assert_equal nil, cc[:baz]
@@ -65,7 +65,7 @@ module Librato
 
         # add a different sporadic metric
         cc.increment :bazoom, :sporadic => true
-        assert_equal 1, cc[:bazoom]
+        assert_equal 1, cc[:bazoom][:value]
 
         # persist values again
         cc.flush_to(Librato::Metrics::Queue.new)
