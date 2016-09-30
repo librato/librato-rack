@@ -166,7 +166,7 @@ module Librato
       end
 
       def tags
-        @tags ||= config.has_tags? ? config.tags : { hostname: Socket.gethostname.downcase }
+        @tags ||= config.has_tags? ? config.tags : { host: Socket.gethostname.downcase }
       end
 
       # should we spin up a worker? wrap this in a process check
