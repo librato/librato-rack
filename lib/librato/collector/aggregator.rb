@@ -9,7 +9,7 @@ module Librato
 
       extend Forwardable
 
-      def_delegators :@cache, :add_tags, :empty?, :prefix, :prefix=
+      def_delegators :@cache, :empty?, :prefix, :prefix=, :tags, :tags=
 
       def initialize(options={})
         @cache = Librato::Metrics::Aggregator.new(
@@ -129,12 +129,8 @@ module Librato
       def fetch_percentile_store(event, options)
         keyname = event
 
-        if options[:tags] && options[:tags].respond_to?(:each)
-          options[:tags].sort.each do |k, v|
-            k = k.is_a?(String) ? k.downcase.delete(" ") : k
-            v = v.is_a?(String) ? v.downcase.delete(" ") : v
-            keyname = "#{keyname}#{SEPARATOR}#{k}#{SEPARATOR}#{v}"
-          end
+        if options[:tags]
+          keyname = Librato::Metrics::Util.build_key_for(keyname, options[:tags])
         end
 
         @percentiles[keyname] ||= {

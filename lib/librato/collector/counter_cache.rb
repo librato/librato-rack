@@ -37,12 +37,8 @@ module Librato
 
       def fetch(key, options={})
         key = key.to_s
-        if options[:tags] && options[:tags].respond_to?(:each)
-          options[:tags].sort.each do |k, v|
-            k = k.is_a?(String) ? k.downcase.delete(" ") : k
-            v = v.is_a?(String) ? v.downcase.delete(" ") : v
-            key = "#{key}#{SEPARATOR}#{k}#{SEPARATOR}#{v}"
-          end
+        if options[:tags]
+          key = Librato::Metrics::Util.build_key_for(key, options[:tags])
         end
         @lock.synchronize { @cache[key] }
       end
@@ -81,12 +77,8 @@ module Librato
           options = {by: options}
         end
         by = options[:by] || 1
-        if options[:tags] && options[:tags].respond_to?(:each)
-          options[:tags].sort.each do |k, v|
-            k = k.is_a?(String) ? k.downcase.delete(' ') : k
-            v = v.is_a?(String) ? v.downcase.delete(' ') : v
-            metric = "#{metric}#{SEPARATOR}#{k}#{SEPARATOR}#{v}"
-          end
+        if options[:tags]
+          metric = Librato::Metrics::Util.build_key_for(metric, options[:tags])
         end
         if options[:sporadic]
           make_sporadic(metric)

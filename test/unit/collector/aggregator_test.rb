@@ -110,7 +110,7 @@ module Librato
         @agg.flush_to(q)
 
         expected = Set.new([
-          {:name=>"meaning.of.life", :count=>1, :sum=>1.0, :min=>1.0, :max=>1.0},
+          {:name=>"meaning.of.life", :count=>1, :sum=>1.0, :min=>1.0, :max=>1.0, :tags=>@tags},
           {:name=>"meaning.of.life", :count=>1, :sum=>42.0, :min=>42.0, :max=>42.0, :tags=>tags}
         ])
         assert_equal expected, Set.new(q.queued[:measurements])
