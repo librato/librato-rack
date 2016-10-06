@@ -78,7 +78,7 @@ module Librato
 
       def dump
         fields = {}
-        %w{flush_interval log_level prefix report_pids suites tags token user}.each do |field|
+        %w{flush_interval log_level prefix suites tags token user}.each do |field|
           fields[field.to_sym] = self.send(field)
         end
         fields[:metric_suites] = metric_suites.fields
