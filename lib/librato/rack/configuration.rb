@@ -16,7 +16,7 @@ module Librato
 
       attr_accessor :api_endpoint, :autorun, :disable_rack_metrics,
                     :flush_interval, :log_level, :log_prefix,
-                    :log_target, :proxy, :report_pids, :suites,
+                    :log_target, :proxy, :suites,
                     :tags, :token, :tracker, :user
       attr_reader :deprecations, :prefix
 
@@ -25,7 +25,6 @@ module Librato
         self.tracker = nil
         self.api_endpoint = Librato::Metrics.api_endpoint
         self.flush_interval = 60
-        self.report_pids = false
         self.log_prefix = '[librato-rack] '
         @listeners = []
         @deprecations = []

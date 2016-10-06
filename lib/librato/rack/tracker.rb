@@ -14,7 +14,7 @@ module Librato
       def initialize(config)
         @config = config
         collector.prefix = config.prefix
-        collector.aggregate.tags = qualified_tags
+        collector.aggregate.tags = tags
         config.register_listener(collector)
       end
 
@@ -58,11 +58,6 @@ module Librato
         log :error, "submission failed permanently: #{error}"
       end
 
-      # tags merged with process pid if indicated
-      def qualified_tags
-        config.report_pids ? tags.merge({ pid: $$ }) : tags
-      end
-
       # current local instrumentation to be sent on next flush
       # this is for debugging, don't call rapidly in production as it
       # may introduce latency
@@ -77,8 +72,8 @@ module Librato
           log :debug, 'halting: credentials not present.'
         elsif config.autorun == false
           log :debug, 'halting: LIBRATO_AUTORUN disabled startup'
-        elsif qualified_tags.any? { |k,v| k.to_s !~ ValidatingQueue::TAGS_KEY_REGEX || v.to_s !~ ValidatingQueue::TAGS_VALUE_REGEX }
-          log :warn, "halting: '#{qualified_tags}' are invalid tags."
+        elsif tags.any? { |k,v| k.to_s !~ ValidatingQueue::TAGS_KEY_REGEX || v.to_s !~ ValidatingQueue::TAGS_VALUE_REGEX }
+          log :warn, "halting: '#{tags}' are invalid tags."
         elsif on_heroku && !config.has_tags?
           log :warn, 'halting: tags must be provided in configuration.'
         else
