@@ -53,9 +53,9 @@ module Librato
           counts = JSON.parse(@cache.dup.to_json, symbolize_names: true)
           reset_cache unless opts[:preserve]
         end
-        counts.each do |metric, value|
+        counts.each do |metric, payload|
           metric = metric.to_s.split(SEPARATOR).first
-          queue.add metric => value
+          queue.add metric => payload
         end
       end
 
