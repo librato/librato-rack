@@ -55,11 +55,11 @@ class TrackerRemoteTest < Minitest::Test
     def test_counter_persistent_through_flush
       tracker.increment 'knightrider'
       tracker.increment 'badguys', sporadic: true
-      assert_equal 1, collector.counters['knightrider']
-      assert_equal 1, collector.counters['badguys']
+      assert_equal 1, collector.counters['knightrider'][:value]
+      assert_equal 1, collector.counters['badguys'][:value]
 
       tracker.flush
-      assert_equal 0, collector.counters['knightrider']
+      assert_equal 0, collector.counters['knightrider'][:value]
       assert_equal nil, collector.counters['badguys']
     end
 
@@ -187,7 +187,7 @@ class TrackerRemoteTest < Minitest::Test
       tags_query = opts.fetch(:tags, nil)
 
       @queued[:measurements].each do |measurement|
-        if measurement[:name] == name.to_s && measurement[:tags] == tags_query
+        if measurement[:name] == name.to_s && measurement[:tags] == tags_query || measurement[:name] == name.to_s && @queued[:tags] == tags_query
           if measurement[:count]
             # complex metric, return the whole hash
             return measurement
@@ -201,7 +201,7 @@ class TrackerRemoteTest < Minitest::Test
     end
 
     def tags
-      @tracker.qualified_tags
+      @tracker.send(:tags)
     end
 
     def delete_all_metrics
