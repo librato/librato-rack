@@ -85,7 +85,7 @@ module Librato
         end
         @lock.synchronize do
           @cache[metric] = {} unless @cache[metric]
-          @cache[metric][:name] ||= counter.to_s
+          @cache[metric][:name] ||= metric
           @cache[metric][:value] ||= 0
           @cache[metric][:value] += by
           @cache[metric][:tags] = options[:tags] if options[:tags]
