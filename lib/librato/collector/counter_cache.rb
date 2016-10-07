@@ -77,8 +77,14 @@ module Librato
           options = {by: options}
         end
         by = options[:by] || 1
-        if options[:tags]
-          metric = Librato::Metrics::Util.build_key_for(metric, options[:tags])
+        source = options[:source]
+        tags = options[:tags]
+        if source
+          # convert custom instrumentation using legacy source
+          metric = "#{metric}#{SEPARATOR}#{source}"
+          tags = { source: source }
+        elsif tags
+          metric = Librato::Metrics::Util.build_key_for(metric, tags)
         end
         if options[:sporadic]
           make_sporadic(metric)
@@ -88,7 +94,7 @@ module Librato
           @cache[metric][:name] ||= metric
           @cache[metric][:value] ||= 0
           @cache[metric][:value] += by
-          @cache[metric][:tags] = options[:tags] if options[:tags]
+          @cache[metric][:tags] = tags if tags
         end
       end
 

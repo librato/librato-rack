@@ -92,6 +92,12 @@ module Librato
         if args.length > 1 and args[-1].respond_to?(:each)
           options = args[-1]
         end
+
+        if options[:source]
+          # convert custom instrumentation using legacy source
+          tags = { source: options[:source] }
+        end
+
         tags = options[:tags]
         percentiles = Array(options[:percentile])
 
