@@ -64,6 +64,24 @@ module Librato
         assert buffer_lines.to_s.include?("invalid tags")
       end
 
+      def test_exceeding_default_tags_limit_can_prevent_startup
+        config = Configuration.new
+        config.user, config.token = "foo", "bar"
+        @buffer = StringIO.new
+        config.log_target = @buffer
+        config.tags = { a: 1, b: 2, c: 3, d: 4, e: 5 }
+        tracker_1 = Tracker.new(config)
+
+        assert_equal true, tracker_1.send(:should_start?)
+
+        config.tags = { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6 }
+
+        tracker_2 = Tracker.new(config)
+
+        assert_equal false, tracker_2.send(:should_start?)
+        assert buffer_lines.to_s.include?("cannot exceed default tags limit")
+      end
+
       def test_suite_configured
         ENV['LIBRATO_SUITES'] = 'abc,prq'
 

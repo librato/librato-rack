@@ -74,6 +74,8 @@ module Librato
           log :debug, 'halting: LIBRATO_AUTORUN disabled startup'
         elsif tags.any? { |k,v| k.to_s !~ ValidatingQueue::TAGS_KEY_REGEX || v.to_s !~ ValidatingQueue::TAGS_VALUE_REGEX }
           log :warn, "halting: '#{tags}' are invalid tags."
+        elsif tags.keys.length > ValidatingQueue::DEFAULT_TAGS_LIMIT
+          log :warn, "halting: cannot exceed default tags limit of #{ValidatingQueue::DEFAULT_TAGS_LIMIT} tag names per measurement."
         elsif on_heroku && !config.has_tags?
           log :warn, 'halting: tags must be provided in configuration.'
         else
