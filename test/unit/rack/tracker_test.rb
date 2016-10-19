@@ -69,12 +69,12 @@ module Librato
         config.user, config.token = "foo", "bar"
         @buffer = StringIO.new
         config.log_target = @buffer
-        config.tags = { a: 1, b: 2, c: 3, d: 4, e: 5 }
+        config.tags = { a: 1, b: 2, c: 3, d: 4 }
         tracker_1 = Tracker.new(config)
 
         assert_equal true, tracker_1.send(:should_start?)
 
-        config.tags = { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6 }
+        config.tags = { a: 1, b: 2, c: 3, d: 4, e: 5 }
 
         tracker_2 = Tracker.new(config)
 
