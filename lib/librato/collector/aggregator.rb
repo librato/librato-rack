@@ -93,17 +93,18 @@ module Librato
           options = args[-1]
         end
 
-        if options[:source]
-          # convert custom instrumentation using legacy source
-          tags = { source: options[:source] }
-        end
-
-        tags = options[:tags]
         percentiles = Array(options[:percentile])
+        tags_payload =
+          if options[:source]
+            # convert custom instrumentation using legacy source
+            { tags: { source: options[:source] } }
+          elsif options[:tags]
+            { tags: options[:tags] }
+          end
 
         @lock.synchronize do
           payload = { value: value }
-          payload.merge!({ tags: tags }) if tags
+          payload.merge!(tags_payload) if tags_payload
           @cache.add event => payload
 
           percentiles.each do |perc|

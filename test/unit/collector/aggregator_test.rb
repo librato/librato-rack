@@ -101,6 +101,12 @@ module Librato
         assert_in_delta @agg.fetch("mytiming", tags: tags_2)[:sum], 20, 10
       end
 
+      def test_legacy_source
+        legacy_agg = Aggregator.new
+        legacy_agg.measure "feature_flag.check", 5, source: "new_feature"
+        assert_equal 5, legacy_agg.fetch("feature_flag.check", tags: { source: "new_feature" })[:sum]
+      end
+
       def test_flush
         tags = { hostname: "douglas_adams" }
         @agg.measure 'meaning.of.life', 1
