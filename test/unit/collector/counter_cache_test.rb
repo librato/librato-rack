@@ -41,6 +41,14 @@ module Librato
         assert_equal 10, cc.fetch(:foo, tags: { hostname: "boombah" })[:value]
       end
 
+      def test_legacy_source
+        cc = CounterCache.new
+
+        cc.increment :foo, source: "bar"
+
+        assert_equal 1, cc.fetch(:foo, tags: { source: "bar" })[:value]
+      end
+
       def test_sporadic
         cc = CounterCache.new
 

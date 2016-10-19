@@ -81,8 +81,8 @@ module Librato
         tags = options[:tags]
         if source
           # convert custom instrumentation using legacy source
-          metric = "#{metric}#{SEPARATOR}#{source}"
           tags = { source: source }
+          metric = Librato::Metrics::Util.build_key_for(metric, tags)
         elsif tags
           metric = Librato::Metrics::Util.build_key_for(metric, tags)
         end
