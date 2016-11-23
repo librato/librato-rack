@@ -161,7 +161,7 @@ Use when you want to track an average value _per_-request. Examples:
 
     Librato.measure 'user.social_graph.nodes', 212
 
-    # report from custom tags
+    # report from custom per-measurement tags
     Librato.measure 'jobs.queued', 3, tags: { priority: 'high', worker: 'worker.12' }
 
 #### timing
