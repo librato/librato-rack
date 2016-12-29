@@ -74,7 +74,8 @@ module Librato
       #   increment :foo, :source => user.id
       #
       def increment(counter, options={})
-        if options.is_a?(Fixnum)
+        integer_class = 1.class
+        if options.is_a?(integer_class)
           # suppport legacy style
           options = {by: options}
         end
