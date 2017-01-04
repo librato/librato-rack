@@ -58,7 +58,7 @@ class TrackerRemoteTest < Minitest::Test
 
       tracker.flush
       assert_equal 0, collector.counters['knightrider']
-      assert_equal nil, collector.counters['badguys']
+      assert_nil collector.counters['badguys']
     end
 
     def test_flush_should_send_measures_and_timings

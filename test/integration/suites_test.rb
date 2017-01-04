@@ -25,14 +25,14 @@ class SuitesTest < Minitest::Test
     assert_equal 1, aggregate["rack.request.time"][:count]
 
     # rack.request.method metrics (rack_method suite) should not get logged
-    assert_equal nil, counters['rack.request.method.get']
-    assert_equal nil, aggregate['rack.request.method.get.time']
+    assert_nil counters['rack.request.method.get']
+    assert_nil aggregate['rack.request.method.get.time']
 
     # rack.request.status metrics (rack_status suite) should not get logged
-    assert_equal nil, counters["rack.request.status.200"]
-    assert_equal nil, counters["rack.request.status.2xx"]
-    assert_equal nil, counters["rack.request.status.200.time"]
-    assert_equal nil, counters["rack.request.status.2xx.time"]
+    assert_nil counters["rack.request.status.200"]
+    assert_nil counters["rack.request.status.2xx"]
+    assert_nil counters["rack.request.status.200.time"]
+    assert_nil counters["rack.request.status.2xx.time"]
   end
 
   private
