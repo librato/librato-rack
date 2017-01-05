@@ -60,8 +60,8 @@ module Librato
         assert_equal 0, cc.fetch(:foo, :source => 'bar')
 
         # sporadic do not
-        assert_equal nil, cc[:baz]
-        assert_equal nil, cc.fetch(:baz, :source => 118)
+        assert_nil cc[:baz]
+        assert_nil cc.fetch(:baz, :source => 118)
 
         # add a different sporadic metric
         cc.increment :bazoom, :sporadic => true
@@ -69,7 +69,7 @@ module Librato
 
         # persist values again
         cc.flush_to(Librato::Metrics::Queue.new)
-        assert_equal nil, cc[:bazoom]
+        assert_nil cc[:bazoom]
       end
 
       def test_flushing

@@ -55,7 +55,7 @@ module Librato
 
       def test_event_mode
         config = Configuration.new
-        assert_equal nil, config.event_mode
+        assert_nil config.event_mode
 
         config.event_mode = :synchrony
         assert_equal :synchrony, config.event_mode
@@ -67,7 +67,7 @@ module Librato
         # handle invalid
         config2 = Configuration.new
         config2.event_mode = 'fooballoo'
-        assert_equal nil, config2.event_mode
+        assert_nil config2.event_mode
 
         # env detection
         ENV['LIBRATO_EVENT_MODE'] = 'eventmachine'
