@@ -5,6 +5,7 @@ module Librato
     #
     class CounterCache
       SEPARATOR = '%%'
+      INTEGER_CLASS = 1.class
 
       extend Forwardable
 
@@ -74,7 +75,7 @@ module Librato
       #   increment :foo, :source => user.id
       #
       def increment(counter, options={})
-        if options.is_a?(Fixnum)
+        if options.is_a?(INTEGER_CLASS)
           # suppport legacy style
           options = {by: options}
         end
