@@ -130,7 +130,7 @@ module Librato
         [collector.counters, collector.aggregate].each do |cache|
           cache.flush_to(queue, preserve: preserve)
         end
-        queue.add 'rack.processes' => 1
+        queue.add 'rack.processes' => 1 unless config.disable_rack_metrics
         trace_queued(queue.queued) #if should_log?(:trace)
         queue
       end
