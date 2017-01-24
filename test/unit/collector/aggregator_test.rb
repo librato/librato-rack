@@ -6,7 +6,7 @@ module Librato
 
       def setup
         @tags = { hostname: "metrics-web-stg-1" }
-        @agg = Aggregator.new(tags: @tags)
+        @agg = Aggregator.new(default_tags: @tags)
       end
 
       def test_adding_timings
@@ -68,7 +68,7 @@ module Librato
           @agg.timing "a.sample.thing", val, percentile: 50
         end
         assert_equal 5.5,
-          @agg.fetch("a.sample.thing", tags: { hostname: "foo" }, percentile: 50),
+          @agg.fetch("a.sample.thing", tags: @tags, percentile: 50),
           "can calculate percentile with tags"
       end
 
@@ -142,13 +142,42 @@ module Librato
         assert_equal 2, b_timing_50[:value]
         assert_equal 3, b_timing_999[:value]
 
-        assert_nil a_timing[:tags],                       "no tags set"
         assert_equal "f", b_timing_50[:tags][:hostname],  "proper tags set"
         assert_equal "f", b_timing_999[:tags][:hostname], "proper tags set"
 
         # flushing clears percentages to track
-        storage = @agg.instance_variable_get('@percentiles')
-        assert_equal 0, storage['a.timing'][:percs].length, 'clears percentiles'
+        measurement = @agg.send(:fetch_percentile_store, 'a.timing', tags: @tags)
+        assert_equal 0, measurement[:percs].length, 'clears percentiles'
+      end
+
+      def test_default_tags
+        default_tags = { queue: 'priority' }
+        agg = Aggregator.new(default_tags: default_tags)
+        agg.measure 'jobs.queued', 1
+
+        assert_equal 1, agg['jobs.queued'][:sum]
+        assert_equal default_tags, agg['jobs.queued'][:tags]
+      end
+
+      def test_tags_option
+        default_tags = { queue: 'priority' }
+        tags_option = { worker: 'worker.12' }
+        agg = Aggregator.new(default_tags: default_tags)
+        agg.measure 'jobs.queued', 1, tags: tags_option
+
+        assert_equal 1, agg.fetch('jobs.queued', tags: tags_option)[:sum]
+        assert_equal tags_option, agg.fetch('jobs.queued', tags: tags_option)[:tags]
+      end
+
+      def test_inherit_tags
+        default_tags = { queue: 'priority' }
+        tags_option = { worker: 'worker.12' }
+        merged_tags = default_tags.merge(tags_option)
+        agg = Aggregator.new(default_tags: default_tags)
+        agg.measure 'jobs.queued', 1, tags: tags_option, inherit_tags: true
+
+        assert_equal 1, agg.fetch('jobs.queued', tags: merged_tags)[:sum]
+        assert_equal merged_tags, agg.fetch('jobs.queued', tags: merged_tags)[:tags]
       end
 
     end

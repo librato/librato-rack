@@ -5,7 +5,7 @@ module Librato
     class CounterCacheTest < Minitest::Test
 
       def test_basic_operations
-        cc = CounterCache.new
+        cc = CounterCache.new(default_tags: { host: 'metricsweb-stagevpc-1' })
         cc.increment :foo
         assert_equal 1, cc[:foo][:value]
 
@@ -50,7 +50,7 @@ module Librato
       end
 
       def test_sporadic
-        cc = CounterCache.new
+        cc = CounterCache.new(default_tags: { host: 'metricsweb-stagevpc-1' })
 
         cc.increment :foo
         cc.increment :foo, tags: { hostname: "bar" }
@@ -81,7 +81,8 @@ module Librato
       end
 
       def test_flushing
-        cc = CounterCache.new
+        default_tags = { host: 'metricsweb-stagevpc-1' }
+        cc = CounterCache.new(default_tags: default_tags)
         tags = { hostname: "foobar" }
 
         cc.increment :foo
@@ -92,12 +93,42 @@ module Librato
         q = Librato::Metrics::Queue.new(tags: { region: "us-east-1" })
         cc.flush_to(q)
 
-        expected = Set.new [{:name=>"foo", :value=>1},
+        expected = Set.new [{:name=>"foo", :value=>1, :tags=>default_tags},
                     {:name=>"foo", :value=>4, :tags=>tags},
-                    {:name=>"bar", :value=>2}]
+                    {:name=>"bar", :value=>2, :tags=>default_tags}]
         queued = Set.new(q.measurements)
         queued.each { |hash| hash.delete(:time) }
         assert_equal queued, expected
+      end
+
+      def test_default_tags
+        default_tags = { host: 'metricsweb-stagevpc-1' }
+        cc = CounterCache.new(default_tags: default_tags)
+        cc.increment 'user.signup'
+
+        assert_equal 1, cc.fetch('user.signup')[:value]
+        assert_equal default_tags, cc.fetch('user.signup')[:tags]
+      end
+
+      def test_tags_option
+        default_tags = { host: 'metricsweb-stagevpc-1' }
+        tags_option = { plan: 'developer' }
+        cc = CounterCache.new(default_tags: default_tags)
+        cc.increment 'user.signup', tags: tags_option
+
+        assert_equal 1, cc.fetch('user.signup', tags: tags_option)[:value]
+        assert_equal tags_option, cc.fetch('user.signup', tags: tags_option)[:tags]
+      end
+
+      def test_inherit_tags
+        default_tags = { host: 'metricsweb-stagevpc-1' }
+        tags_option = { plan: 'developer' }
+        merged_tags = default_tags.merge(tags_option)
+        cc = CounterCache.new(default_tags: default_tags)
+        cc.increment 'user.signup', tags: tags_option, inherit_tags: true
+
+        assert_equal 1, cc.fetch('user.signup', tags: merged_tags)[:value]
+        assert_equal merged_tags, cc.fetch('user.signup', tags: merged_tags)[:tags]
       end
 
     end

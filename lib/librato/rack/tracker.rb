@@ -14,7 +14,6 @@ module Librato
       def initialize(config)
         @config = config
         collector.prefix = config.prefix
-        collector.aggregate.tags = tags
         config.register_listener(collector)
       end
 
@@ -38,7 +37,7 @@ module Librato
 
       # primary collector object used by this tracker
       def collector
-        @collector ||= Librato::Collector.new
+        @collector ||= Librato::Collector.new(tags: tags)
       end
 
       # log a deprecation message
@@ -121,12 +120,12 @@ module Librato
       end
 
       def build_flush_queue(collector, preserve=false)
-        queue = ValidatingQueue.new( client: client, tags: tags,
+        queue = ValidatingQueue.new( client: client,
           prefix: config.prefix, skip_measurement_times: true )
         [collector.counters, collector.aggregate].each do |cache|
           cache.flush_to(queue, preserve: preserve)
         end
-        queue.add 'rack.processes' => 1
+        queue.add 'rack.processes' => { value: 1, tags: tags }
         trace_queued(queue.queued) #if should_log?(:trace)
         queue
       end

@@ -9,15 +9,15 @@ module Librato
 
       extend Forwardable
 
-      def_delegators :@cache, :empty?, :prefix, :prefix=, :tags, :tags=
+      def_delegators :@cache, :empty?, :prefix, :prefix=
+
+      attr_reader :default_tags
 
       def initialize(options={})
-        @cache = Librato::Metrics::Aggregator.new(
-          prefix: options[:prefix],
-          tags: options.fetch(:tags, {})
-        )
+        @cache = Librato::Metrics::Aggregator.new(prefix: options[:prefix])
         @percentiles = {}
         @lock = Mutex.new
+        @default_tags = options.fetch(:default_tags, {})
       end
 
       def [](key)
@@ -30,7 +30,7 @@ module Librato
         return nil if @cache.empty?
         return fetch_percentile(key, options) if options[:percentile]
         measurements = nil
-        tags = options[:tags]
+        tags = options[:tags] || @default_tags
         @lock.synchronize { measurements = @cache.queued[:measurements] }
         measurements.each do |metric|
           if metric[:name] == key.to_s
@@ -94,17 +94,21 @@ module Librato
         end
 
         percentiles = Array(options[:percentile])
-        tags_payload =
-          if options[:source]
-            # convert custom instrumentation using legacy source
-            { tags: { source: options[:source] } }
-          elsif options[:tags]
-            { tags: options[:tags] }
+        source = options[:source]
+        tags_option = options[:tags]
+        tags_option = { source: source } if source && !tags_option
+        tags =
+          if tags_option && options[:inherit_tags]
+            @default_tags.merge(tags_option)
+          elsif tags_option
+            tags_option
+          else
+            @default_tags
           end
 
         @lock.synchronize do
           payload = { value: value }
-          payload.merge!(tags_payload) if tags_payload
+          payload.merge!({ tags: tags }) if tags
           @cache.add event => payload
 
           percentiles.each do |perc|
@@ -128,7 +132,7 @@ module Librato
       end
 
       def fetch_percentile(key, options)
-        store = fetch_percentile_store(key, options[:tags])
+        store = fetch_percentile_store(key, options)
         return nil unless store
         store[:reservoir].percentile(options[:percentile])
       end

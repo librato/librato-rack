@@ -12,10 +12,13 @@ module Librato
 
       def_delegators :@cache, :empty?
 
-      def initialize
+      attr_reader :default_tags
+
+      def initialize(options={})
         @cache = {}
         @lock = Mutex.new
         @sporadics = Set.new
+        @default_tags = options.fetch(:default_tags, {})
       end
 
       # Retrieve the current value for a given metric. This is a short
@@ -37,9 +40,12 @@ module Librato
 
       def fetch(key, options={})
         key = key.to_s
-        if options[:tags]
-          key = Librato::Metrics::Util.build_key_for(key, options[:tags])
-        end
+        key =
+          if options[:tags]
+            Librato::Metrics::Util.build_key_for(key, options[:tags])
+          elsif @default_tags
+            Librato::Metrics::Util.build_key_for(key, @default_tags)
+          end
         @lock.synchronize { @cache[key] }
       end
 
@@ -78,14 +84,17 @@ module Librato
         end
         by = options[:by] || 1
         source = options[:source]
-        tags = options[:tags]
-        if source
-          # convert custom instrumentation using legacy source
-          tags = { source: source }
-          metric = Librato::Metrics::Util.build_key_for(metric, tags)
-        elsif tags
-          metric = Librato::Metrics::Util.build_key_for(metric, tags)
-        end
+        tags_option = options[:tags]
+        tags_option = { source: source } if source && !tags_option
+        tags =
+          if tags_option && options[:inherit_tags]
+            @default_tags.merge(tags_option)
+          elsif tags_option
+            tags_option
+          else
+            @default_tags
+          end
+        metric = Librato::Metrics::Util.build_key_for(metric, tags) if tags
         if options[:sporadic]
           make_sporadic(metric)
         end
