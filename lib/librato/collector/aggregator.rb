@@ -96,13 +96,13 @@ module Librato
 
         percentiles = Array(options[:percentile])
         source = options[:source]
-        additional_tags = options[:tags]
-        additional_tags = { source: source } if source && !additional_tags
+        tags_option = options[:tags]
+        tags_option = { source: source } if source && !tags_option
         tags =
-          if @default_tags && additional_tags && options[:inherit_tags]
-            @default_tags.merge(additional_tags)
-          elsif additional_tags
-            additional_tags
+          if @default_tags && tags_option && options[:inherit_tags]
+            @default_tags.merge(tags_option)
+          elsif tags_option
+            tags_option
           else
             @default_tags
           end
