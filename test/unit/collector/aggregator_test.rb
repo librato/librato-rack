@@ -6,26 +6,27 @@ module Librato
 
       def setup
         @tags = { hostname: "metrics-web-stg-1" }
-        @agg = Aggregator.new(tags: @tags)
+        @agg = Aggregator.new(default_tags: @tags)
       end
 
       def test_adding_timings
         @agg.timing 'request.time.total', 23.7
         @agg.timing 'request.time.db', 5.3
         @agg.timing 'request.time.total', 64.3
+        measurement = @agg.fetch 'request.time.total', tags: @tags
 
-        assert_equal 2, @agg['request.time.total'][:count]
-        assert_equal 88.0, @agg['request.time.total'][:sum]
+        assert_equal 2, measurement[:count]
+        assert_equal 88.0, measurement[:sum]
       end
 
       def test_block_timing
         @agg.timing 'my.task' do
           sleep 0.2
         end
-        assert_in_delta @agg['my.task'][:sum], 200, 50
+        assert_in_delta @agg.fetch('my.task', tags: @tags)[:sum], 200, 50
 
         @agg.timing('another.task') { sleep 0.1 }
-        assert_in_delta @agg['another.task'][:sum], 100, 50
+        assert_in_delta @agg.fetch('another.task', tags: @tags)[:sum], 100, 50
       end
 
       def test_percentiles
@@ -68,7 +69,7 @@ module Librato
           @agg.timing "a.sample.thing", val, percentile: 50
         end
         assert_equal 5.5,
-          @agg.fetch("a.sample.thing", tags: { hostname: "foo" }, percentile: 50),
+          @agg.fetch("a.sample.thing", tags: @tags, percentile: 50),
           "can calculate percentile with tags"
       end
 
@@ -90,7 +91,7 @@ module Librato
         # tags are kept separate
         @agg.measure 'meaning.of.life', 1
         @agg.measure "meaning.of.life", 42, tags: tags_1
-        assert_equal 1.0, @agg.fetch('meaning.of.life')[:sum]
+        assert_equal 1.0, @agg.fetch("meaning.of.life", tags: @tags)[:sum]
         assert_equal 42.0, @agg.fetch("meaning.of.life", tags: tags_1)[:sum]
 
         tags_2 = { hostname: "mine" }
@@ -142,13 +143,42 @@ module Librato
         assert_equal 2, b_timing_50[:value]
         assert_equal 3, b_timing_999[:value]
 
-        assert_nil a_timing[:tags],                       "no tags set"
         assert_equal "f", b_timing_50[:tags][:hostname],  "proper tags set"
         assert_equal "f", b_timing_999[:tags][:hostname], "proper tags set"
 
         # flushing clears percentages to track
-        storage = @agg.instance_variable_get('@percentiles')
-        assert_equal 0, storage['a.timing'][:percs].length, 'clears percentiles'
+        measurement = @agg.send(:fetch_percentile_store, 'a.timing', tags: @tags)
+        assert_equal 0, measurement[:percs].length, 'clears percentiles'
+      end
+
+      def test_default_tags
+        default_tags = { a: 1 }
+        agg = Aggregator.new(default_tags: default_tags)
+        agg.measure :foo, 1
+
+        assert_equal 1, agg["foo"][:sum]
+        assert_equal default_tags, agg["foo"][:tags]
+      end
+
+      def test_additional_tags
+        default_tags = { a: 1 }
+        additional_tags = { b: 2 }
+        agg = Aggregator.new(default_tags: default_tags)
+        agg.measure :foo, 1, tags: additional_tags
+
+        assert_equal 1, agg.fetch("foo", tags: additional_tags)[:sum]
+        assert_equal additional_tags, agg.fetch("foo", tags: additional_tags)[:tags]
+      end
+
+      def test_inherit_tags
+        default_tags = { a: 1 }
+        additional_tags = { b: 2 }
+        merged_tags = default_tags.merge(additional_tags)
+        agg = Aggregator.new(default_tags: default_tags)
+        agg.measure :foo, 1, tags: additional_tags, inherit_tags: true
+
+        assert_equal 1, agg.fetch("foo", tags: merged_tags)[:sum]
+        assert_equal merged_tags, agg.fetch("foo", tags: merged_tags)[:tags]
       end
 
     end

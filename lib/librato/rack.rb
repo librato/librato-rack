@@ -45,14 +45,14 @@ module Librato
 
     RECORD_RACK_STATUS_BODY = <<-'EOS'
       status_tags = { status: status }
-      tracker.increment "rack.request.status", tags: status_tags
-      tracker.timing "rack.request.status.time", duration, tags: status_tags
+      tracker.increment "rack.request.status", tags: status_tags, inherit_tags: true
+      tracker.timing "rack.request.status.time", duration, tags: status_tags, inherit_tags: true
     EOS
 
     RECORD_RACK_METHOD_BODY = <<-'EOS'
       method_tags = { method: http_method.downcase! }
-      tracker.increment "rack.request.method", tags: method_tags
-      tracker.timing "rack.request.method.time", duration, tags: method_tags
+      tracker.increment "rack.request.method", tags: method_tags, inherit_tags: true
+      tracker.timing "rack.request.method.time", duration, tags: method_tags, inherit_tags: true
     EOS
 
     attr_reader :config, :tracker

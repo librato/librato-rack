@@ -18,7 +18,7 @@ module Librato
 
     # access to internal aggregator object
     def aggregate
-      @aggregator_cache ||= Aggregator.new(prefix: @prefix)
+      @aggregator_cache ||= Aggregator.new(prefix: @prefix, default_tags: @tags)
     end
 
     # access to internal counters object

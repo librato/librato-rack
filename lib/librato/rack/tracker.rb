@@ -14,7 +14,6 @@ module Librato
       def initialize(config)
         @config = config
         collector.prefix = config.prefix
-        collector.aggregate.tags = tags
         config.register_listener(collector)
       end
 
