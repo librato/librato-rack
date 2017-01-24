@@ -17,7 +17,7 @@ module Librato
         @cache = Librato::Metrics::Aggregator.new(prefix: options[:prefix])
         @percentiles = {}
         @lock = Mutex.new
-        @default_tags = options[:default_tags]
+        @default_tags = options.fetch(:default_tags, {})
       end
 
       def [](key)
@@ -30,8 +30,7 @@ module Librato
         return nil if @cache.empty?
         return fetch_percentile(key, options) if options[:percentile]
         measurements = nil
-        tags = options[:tags]
-        tags = @default_tags if @default_tags && !tags
+        tags = options[:tags] || @default_tags
         @lock.synchronize { measurements = @cache.queued[:measurements] }
         measurements.each do |metric|
           if metric[:name] == key.to_s
@@ -99,7 +98,7 @@ module Librato
         tags_option = options[:tags]
         tags_option = { source: source } if source && !tags_option
         tags =
-          if @default_tags && tags_option && options[:inherit_tags]
+          if tags_option && options[:inherit_tags]
             @default_tags.merge(tags_option)
           elsif tags_option
             tags_option

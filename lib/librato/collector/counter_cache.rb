@@ -18,7 +18,7 @@ module Librato
         @cache = {}
         @lock = Mutex.new
         @sporadics = Set.new
-        @default_tags = options[:default_tags]
+        @default_tags = options.fetch(:default_tags, {})
       end
 
       # Retrieve the current value for a given metric. This is a short
@@ -87,7 +87,7 @@ module Librato
         tags_option = options[:tags]
         tags_option = { source: source } if source && !tags_option
         tags =
-          if @default_tags && tags_option && options[:inherit_tags]
+          if tags_option && options[:inherit_tags]
             @default_tags.merge(tags_option)
           elsif tags_option
             tags_option

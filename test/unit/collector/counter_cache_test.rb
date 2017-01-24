@@ -81,7 +81,8 @@ module Librato
       end
 
       def test_flushing
-        cc = CounterCache.new
+        default_tags = { host: 'metricsweb-stagevpc-1' }
+        cc = CounterCache.new(default_tags: default_tags)
         tags = { hostname: "foobar" }
 
         cc.increment :foo
@@ -92,9 +93,9 @@ module Librato
         q = Librato::Metrics::Queue.new(tags: { region: "us-east-1" })
         cc.flush_to(q)
 
-        expected = Set.new [{:name=>"foo", :value=>1},
+        expected = Set.new [{:name=>"foo", :value=>1, :tags=>default_tags},
                     {:name=>"foo", :value=>4, :tags=>tags},
-                    {:name=>"bar", :value=>2}]
+                    {:name=>"bar", :value=>2, :tags=>default_tags}]
         queued = Set.new(q.measurements)
         queued.each { |hash| hash.delete(:time) }
         assert_equal queued, expected
