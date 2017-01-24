@@ -40,9 +40,12 @@ module Librato
 
       def fetch(key, options={})
         key = key.to_s
-        if options[:tags]
-          key = Librato::Metrics::Util.build_key_for(key, options[:tags])
-        end
+        key =
+          if options[:tags]
+            Librato::Metrics::Util.build_key_for(key, options[:tags])
+          elsif @default_tags
+            Librato::Metrics::Util.build_key_for(key, @default_tags)
+          end
         @lock.synchronize { @cache[key] }
       end
 
@@ -81,14 +84,17 @@ module Librato
         end
         by = options[:by] || 1
         source = options[:source]
-        tags = options[:tags]
-        if source
-          # convert custom instrumentation using legacy source
-          tags = { source: source }
-          metric = Librato::Metrics::Util.build_key_for(metric, tags)
-        elsif tags
-          metric = Librato::Metrics::Util.build_key_for(metric, tags)
-        end
+        additional_tags = options[:tags]
+        additional_tags = { source: source } if source && !additional_tags
+        tags =
+          if @default_tags && additional_tags && options[:inherit_tags]
+            @default_tags.merge(additional_tags)
+          elsif additional_tags
+            additional_tags
+          else
+            @default_tags
+          end
+        metric = Librato::Metrics::Util.build_key_for(metric, tags) if tags
         if options[:sporadic]
           make_sporadic(metric)
         end

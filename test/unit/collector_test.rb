@@ -10,7 +10,7 @@ module Librato
     end
 
     def test_basic_grouping
-      collector = Collector.new
+      collector = Collector.new(tags: { host: "foobar" })
       tags = { region: "us-east-1" }
       collector.group 'foo' do |g|
         g.increment :bar

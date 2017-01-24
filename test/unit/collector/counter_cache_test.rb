@@ -5,7 +5,7 @@ module Librato
     class CounterCacheTest < Minitest::Test
 
       def test_basic_operations
-        cc = CounterCache.new
+        cc = CounterCache.new(default_tags: { host: "foobar" })
         cc.increment :foo
         assert_equal 1, cc[:foo][:value]
 
@@ -50,7 +50,7 @@ module Librato
       end
 
       def test_sporadic
-        cc = CounterCache.new
+        cc = CounterCache.new(default_tags: { host: "foobar" })
 
         cc.increment :foo
         cc.increment :foo, tags: { hostname: "bar" }
@@ -98,6 +98,38 @@ module Librato
         queued = Set.new(q.measurements)
         queued.each { |hash| hash.delete(:time) }
         assert_equal queued, expected
+      end
+
+      def test_default_tags
+        tags = { a: 1 }
+        cc = CounterCache.new(default_tags: tags)
+        cc.increment :foo
+
+        assert_equal 1, cc.fetch("foo")[:value]
+        assert_equal tags, cc.fetch("foo")[:tags]
+      end
+
+      def test_additional_tags
+        default_tags = { a: 1 }
+        additional_tags = { b: 2 }
+        cc = CounterCache.new(default_tags: default_tags)
+        cc.increment :foo, tags: additional_tags
+        measurement = cc.fetch("foo", tags: additional_tags)
+
+        assert_equal 1, measurement[:value]
+        assert_equal additional_tags, measurement[:tags]
+      end
+
+      def test_inherit_tags
+        default_tags = { a: 1 }
+        additional_tags = { b: 2 }
+        merged_tags = default_tags.merge(additional_tags)
+        cc = CounterCache.new(default_tags: default_tags)
+        cc.increment :foo, tags: additional_tags, inherit_tags: true
+        measurement = cc.fetch("foo", tags: merged_tags)
+
+        assert_equal 1, measurement[:value]
+        assert_equal merged_tags, measurement[:tags]
       end
 
     end

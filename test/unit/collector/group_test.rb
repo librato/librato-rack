@@ -9,7 +9,7 @@ module Librato
       end
 
       def test_increment
-        collector = Collector.new
+        collector = Collector.new(tags: { host: "foobar" })
         collector.group 'foo' do |g|
           g.increment :bar
           g.increment :baz, tags: @tags
@@ -19,7 +19,7 @@ module Librato
       end
 
       def test_measure
-        collector = Collector.new
+        collector = Collector.new(tags: { host: "foobar" })
         collector.group 'foo' do |g|
           g.measure :baz, 23, tags: @tags
         end
@@ -27,7 +27,7 @@ module Librato
       end
 
       def test_timing
-        collector = Collector.new
+        collector = Collector.new(tags: { host: "foobar" })
         collector.group 'foo' do |g|
           g.timing :bam, 32.0, tags: @tags
         end
@@ -35,7 +35,7 @@ module Librato
       end
 
       def test_timing_block
-        collector = Collector.new
+        collector = Collector.new(tags: { host: "foobar" })
         collector.group 'foo' do |g|
           g.timing :bak, tags: @tags do
             sleep 0.01
@@ -45,7 +45,7 @@ module Librato
       end
 
       def test_nesting
-        collector = Collector.new
+        collector = Collector.new(tags: { host: "foobar" })
         collector.group 'foo' do |g|
           g.group :bar do |b|
             b.increment :baz, 2

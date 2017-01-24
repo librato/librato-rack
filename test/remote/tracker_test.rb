@@ -42,7 +42,7 @@ class TrackerRemoteTest < Minitest::Test
       assert metric_names.include?('bar'), 'bar should be present'
 
       # interogate queued payload for expected values
-      assert_equal tags, @queued[:tags]
+      assert_equal [:host], @queued[:measurements].first[:tags].keys
       assert_equal 2, queued('foo')
 
       # custom source
