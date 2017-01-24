@@ -76,7 +76,7 @@ module Librato
 
       def test_return_values
         simple = @agg.timing 'simple', 20
-        assert_equal nil, simple
+        assert_nil simple
 
         timing = @agg.timing 'foo' do
           sleep 0.1

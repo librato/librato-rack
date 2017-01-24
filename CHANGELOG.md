@@ -1,3 +1,6 @@
+### Version 1.1.0
+* Fix deprecation warnings in ruby 2.4 (#57, Ben Radler)
+
 ### Version 1.0.1
 * Fix missing p95 for rack.request.time
 

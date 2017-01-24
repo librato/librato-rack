@@ -7,6 +7,7 @@ module Librato
     #
     class CounterCache
       SEPARATOR = '%%'
+      INTEGER_CLASS = 1.class
 
       extend Forwardable
 
@@ -78,7 +79,7 @@ module Librato
       #
       def increment(counter, options={})
         metric = counter.to_s
-        if options.is_a?(Fixnum)
+        if options.is_a?(INTEGER_CLASS)
           # suppport legacy style
           options = {by: options}
         end

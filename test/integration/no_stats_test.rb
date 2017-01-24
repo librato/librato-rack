@@ -20,15 +20,15 @@ class NoStatsTest < Minitest::Test
     get '/'
     assert last_response.ok?
 
-    assert_equal nil, counters["rack.request"]
-    assert_equal nil, counters["rack.request.status"]
+    assert_nil counters["rack.request"]
+    assert_nil counters["rack.request.status"]
   end
 
   def test_no_standard_measures
     get '/'
     assert last_response.ok?
 
-    assert_equal nil, aggregate["rack.request.time"]
+    assert_nil aggregate["rack.request.time"]
   end
 
   def test_dont_track_exceptions
@@ -37,7 +37,7 @@ class NoStatsTest < Minitest::Test
     rescue RuntimeError => e
       raise unless e.message == 'exception raised!'
     end
-    assert_equal nil, counters["rack.request.exceptions"]
+    assert_nil counters["rack.request.exceptions"]
   end
 
   private

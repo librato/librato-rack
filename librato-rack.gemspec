@@ -7,9 +7,9 @@ Gem::Specification.new do |s|
   s.version     = Librato::Rack::VERSION
 
   s.authors     = ["Matt Sanders"]
-  s.email       = ["matt@librato.com"]
+  s.email       = ["matt@librato.com", "ruby@librato.com"]
   s.homepage    = "https://github.com/librato/librato-rack"
-  s.license     = 'BSD 3-clause'
+  s.license     = 'BSD-3-Clause'
 
   s.summary     = "Use Librato Metrics with your rack application"
   s.description = "Rack middleware to report key app statistics and custom instrumentation to the Librato Metrics service."

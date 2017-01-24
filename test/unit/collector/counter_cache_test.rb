@@ -68,8 +68,8 @@ module Librato
         assert_equal 0, cc.fetch(:foo, tags: { hostname: "bar" })[:value]
 
         # sporadic do not
-        assert_equal nil, cc[:baz]
-        assert_equal nil, cc.fetch(:baz, tags: { hostname: 118 })
+        assert_nil cc[:baz]
+        assert_nil cc.fetch(:baz, tags: { hostname: 118 })
 
         # add a different sporadic metric
         cc.increment :bazoom, :sporadic => true
@@ -77,7 +77,7 @@ module Librato
 
         # persist values again
         cc.flush_to(Librato::Metrics::Queue.new)
-        assert_equal nil, cc[:bazoom]
+        assert_nil cc[:bazoom]
       end
 
       def test_flushing

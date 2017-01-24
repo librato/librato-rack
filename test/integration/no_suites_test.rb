@@ -30,7 +30,7 @@ class NoSuitesTest < Minitest::Test
   def test_track_queue_time
     get '/'
     assert last_response.ok?
-    assert_equal nil, aggregate["rack.request.queue.time"]
+    assert_nil aggregate["rack.request.queue.time"]
   end
 
   def test_increment_status
