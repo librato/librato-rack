@@ -23,7 +23,7 @@ module Librato
 
     # access to internal counters object
     def counters
-      @counter_cache ||= CounterCache.new
+      @counter_cache ||= CounterCache.new(default_tags: @tags)
     end
 
     # remove any accumulated but unsent metrics

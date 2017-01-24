@@ -12,10 +12,13 @@ module Librato
 
       def_delegators :@cache, :empty?
 
-      def initialize
+      attr_reader :default_tags
+
+      def initialize(options={})
         @cache = {}
         @lock = Mutex.new
         @sporadics = Set.new
+        @default_tags = options[:default_tags]
       end
 
       # Retrieve the current value for a given metric. This is a short
