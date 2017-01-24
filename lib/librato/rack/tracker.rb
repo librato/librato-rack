@@ -121,7 +121,7 @@ module Librato
       end
 
       def build_flush_queue(collector, preserve=false)
-        queue = ValidatingQueue.new( client: client, tags: tags,
+        queue = ValidatingQueue.new( client: client,
           prefix: config.prefix, skip_measurement_times: true )
         [collector.counters, collector.aggregate].each do |cache|
           cache.flush_to(queue, preserve: preserve)
