@@ -38,7 +38,7 @@ module Librato
 
       # primary collector object used by this tracker
       def collector
-        @collector ||= Librato::Collector.new
+        @collector ||= Librato::Collector.new(tags: tags)
       end
 
       # log a deprecation message

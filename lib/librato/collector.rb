@@ -10,6 +10,12 @@ module Librato
     def_delegators :counters, :increment
     def_delegators :aggregate, :measure, :timing
 
+    attr_reader :tags
+
+    def initialize(options={})
+      @tags = options[:tags]
+    end
+
     # access to internal aggregator object
     def aggregate
       @aggregator_cache ||= Aggregator.new(prefix: @prefix)
