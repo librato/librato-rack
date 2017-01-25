@@ -5,6 +5,10 @@ use Librato::Rack
 
 def application(env)
   case env['PATH_INFO']
+  when '/tags'
+    tags = { region: "us-east-1" }
+    Librato.increment "requests", tags: tags
+    Librato.timing "requests.time", 3, tags: tags
   when '/increment'
     Librato.increment :hits
   when '/measure'

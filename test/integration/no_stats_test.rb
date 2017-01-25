@@ -20,9 +20,8 @@ class NoStatsTest < Minitest::Test
     get '/'
     assert last_response.ok?
 
-    assert_nil counters["rack.request.total"]
-    assert_nil counters["rack.request.status.200"]
-    assert_nil counters["rack.request.status.2xx"]
+    assert_nil counters["rack.request"]
+    assert_nil counters["rack.request.status"]
   end
 
   def test_no_standard_measures

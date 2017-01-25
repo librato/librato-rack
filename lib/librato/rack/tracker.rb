@@ -5,8 +5,6 @@ module Librato
     class Tracker
       extend Forwardable
 
-      SOURCE_REGEX = /\A[-:A-Za-z0-9_.]{1,255}\z/
-
       def_delegators :collector, :increment, :measure, :timing, :group
       def_delegators :logger, :log
 
@@ -39,7 +37,7 @@ module Librato
 
       # primary collector object used by this tracker
       def collector
-        @collector ||= Librato::Collector.new
+        @collector ||= Librato::Collector.new(tags: tags)
       end
 
       # log a deprecation message
@@ -59,11 +57,6 @@ module Librato
         log :error, "submission failed permanently: #{error}"
       end
 
-      # source including process pid if indicated
-      def qualified_source
-        config.source_pids ? "#{source}.#{$$}" : source
-      end
-
       # current local instrumentation to be sent on next flush
       # this is for debugging, don't call rapidly in production as it
       # may introduce latency
@@ -78,10 +71,12 @@ module Librato
           log :debug, 'halting: credentials not present.'
         elsif config.autorun == false
           log :debug, 'halting: LIBRATO_AUTORUN disabled startup'
-        elsif qualified_source !~ SOURCE_REGEX
-          log :warn, "halting: '#{qualified_source}' is an invalid source name."
-        elsif on_heroku && !config.explicit_source?
-          log :warn, 'halting: source must be provided in configuration.'
+        elsif tags.any? { |k,v| k.to_s !~ ValidatingQueue::TAGS_KEY_REGEX || v.to_s !~ ValidatingQueue::TAGS_VALUE_REGEX }
+          log :warn, "halting: '#{tags}' are invalid tags."
+        elsif tags.keys.length > ValidatingQueue::DEFAULT_TAGS_LIMIT
+          log :warn, "halting: cannot exceed default tags limit of #{ValidatingQueue::DEFAULT_TAGS_LIMIT} tag names per measurement."
+        elsif on_heroku && !config.has_tags?
+          log :warn, 'halting: tags must be provided in configuration.'
         else
           return true
         end
@@ -125,12 +120,12 @@ module Librato
       end
 
       def build_flush_queue(collector, preserve=false)
-        queue = ValidatingQueue.new( client: client, source: qualified_source,
+        queue = ValidatingQueue.new( client: client,
           prefix: config.prefix, skip_measurement_times: true )
         [collector.counters, collector.aggregate].each do |cache|
           cache.flush_to(queue, preserve: preserve)
         end
-        queue.add 'rack.processes' => 1
+        queue.add 'rack.processes' => { value: 1, tags: tags }
         trace_queued(queue.queued) #if should_log?(:trace)
         queue
       end
@@ -166,8 +161,8 @@ module Librato
         RUBY_DESCRIPTION.split[0]
       end
 
-      def source
-        @source ||= (config.source || Socket.gethostname).downcase
+      def tags
+        @tags ||= config.has_tags? ? config.tags : { host: Socket.gethostname.downcase }
       end
 
       # should we spin up a worker? wrap this in a process check

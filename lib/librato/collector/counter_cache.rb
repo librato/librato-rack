@@ -1,3 +1,5 @@
+require "json"
+
 module Librato
   class Collector
     # maintains storage of a set of incrementable, counter-like
@@ -11,10 +13,13 @@ module Librato
 
       def_delegators :@cache, :empty?
 
-      def initialize
+      attr_reader :default_tags
+
+      def initialize(options={})
         @cache = {}
         @lock = Mutex.new
         @sporadics = Set.new
+        @default_tags = options.fetch(:default_tags, {})
       end
 
       # Retrieve the current value for a given metric. This is a short
@@ -34,14 +39,15 @@ module Librato
         @lock.synchronize { @cache.clear }
       end
 
-
       def fetch(key, options={})
-        if options[:source]
-          key = "#{key}#{SEPARATOR}#{options[:source]}"
-        end
-        @lock.synchronize do
-          @cache[key.to_s]
-        end
+        key = key.to_s
+        key =
+          if options[:tags]
+            Librato::Metrics::Util.build_key_for(key, options[:tags])
+          elsif @default_tags
+            Librato::Metrics::Util.build_key_for(key, @default_tags)
+          end
+        @lock.synchronize { @cache[key] }
       end
 
       # transfer all measurements to queue and reset internal status
@@ -50,16 +56,13 @@ module Librato
         @lock.synchronize do
           # work off of a duplicate data set so we block for
           # as little time as possible
-          counts = @cache.dup
+          # requires a deep copy of data set
+          counts = JSON.parse(@cache.dup.to_json, symbolize_names: true)
           reset_cache unless opts[:preserve]
         end
-        counts.each do |metric, value|
-          metric, source = metric.split(SEPARATOR)
-          if source
-            queue.add metric => {value: value, source: source}
-          else
-            queue.add metric => value
-          end
+        counts.each do |metric, payload|
+          metric = metric.to_s.split(SEPARATOR).first
+          queue.add metric => payload
         end
       end
 
@@ -75,22 +78,33 @@ module Librato
       #   increment :foo, :source => user.id
       #
       def increment(counter, options={})
+        metric = counter.to_s
         if options.is_a?(INTEGER_CLASS)
           # suppport legacy style
           options = {by: options}
         end
         by = options[:by] || 1
-        if options[:source]
-          metric = "#{counter}#{SEPARATOR}#{options[:source]}"
-        else
-          metric = counter.to_s
-        end
+        source = options[:source]
+        tags_option = options[:tags]
+        tags_option = { source: source } if source && !tags_option
+        tags =
+          if tags_option && options[:inherit_tags]
+            @default_tags.merge(tags_option)
+          elsif tags_option
+            tags_option
+          else
+            @default_tags
+          end
+        metric = Librato::Metrics::Util.build_key_for(metric, tags) if tags
         if options[:sporadic]
           make_sporadic(metric)
         end
         @lock.synchronize do
-          @cache[metric] ||= 0
-          @cache[metric] += by
+          @cache[metric] = {} unless @cache[metric]
+          @cache[metric][:name] ||= metric
+          @cache[metric][:value] ||= 0
+          @cache[metric][:value] += by
+          @cache[metric][:tags] = tags if tags
         end
       end
 
@@ -105,7 +119,7 @@ module Librato
         @sporadics.each { |metric| @cache.delete(metric) }
         @sporadics.clear
         # reset all continuous source/metric pairs to 0
-        @cache.each_key { |key| @cache[key] = 0 }
+        @cache.each_key { |key| @cache[key][:value] = 0 }
       end
 
     end

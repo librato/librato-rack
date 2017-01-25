@@ -10,13 +10,14 @@ module Librato
     end
 
     def test_basic_grouping
-      collector = Collector.new
+      collector = Collector.new(tags: { host: 'metricsweb-stagevpc-1' })
+      tags = { region: "us-east-1" }
       collector.group 'foo' do |g|
         g.increment :bar
-        g.measure :baz, 23
+        g.measure :baz, 23, tags: tags
       end
-      assert_equal 1, collector.counters['foo.bar']
-      assert_equal 23, collector.aggregate['foo.baz'][:sum]
+      assert_equal 1, collector.counters["foo.bar"][:value]
+      assert_equal 23, collector.aggregate.fetch("foo.baz", tags: tags)[:sum]
     end
 
   end

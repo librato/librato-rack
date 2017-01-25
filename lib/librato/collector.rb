@@ -10,14 +10,20 @@ module Librato
     def_delegators :counters, :increment
     def_delegators :aggregate, :measure, :timing
 
+    attr_reader :tags
+
+    def initialize(options={})
+      @tags = options[:tags]
+    end
+
     # access to internal aggregator object
     def aggregate
-      @aggregator_cache ||= Aggregator.new(prefix: @prefix)
+      @aggregator_cache ||= Aggregator.new(prefix: @prefix, default_tags: @tags)
     end
 
     # access to internal counters object
     def counters
-      @counter_cache ||= CounterCache.new
+      @counter_cache ||= CounterCache.new(default_tags: @tags)
     end
 
     # remove any accumulated but unsent metrics

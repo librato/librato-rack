@@ -27,24 +27,26 @@ class TrackerRemoteTest < Minitest::Test
     end
 
     def test_flush_counters
-      tracker.increment :foo                        # simple
-      tracker.increment :bar, 2                     # specified
-      tracker.increment :foo                        # multincrement
-      tracker.increment :foo, source: 'baz', by: 3  # custom source
+      tracker.increment :foo                                    # simple
+      tracker.increment :bar, 2                                 # specified
+      tracker.increment :foo                                    # multincrement
+      tracker.increment :foo, tags: { hostname: "baz" }, by: 3  # custom source
       @queued = tracker.queued
       tracker.flush
 
+      sleep 15 # TODO: retry logic for replica delay
+
       # metrics are SSA, so should exist but won't have measurements yet
-      metric_names = client.list.map { |m| m['name'] }
+      metric_names = client.metrics.map { |m| m['name'] }
       assert metric_names.include?('foo'), 'foo should be present'
       assert metric_names.include?('bar'), 'bar should be present'
 
       # interogate queued payload for expected values
-      assert_equal source, @queued[:source]
+      assert_equal [:host], @queued[:measurements].first[:tags].keys
       assert_equal 2, queued('foo')
 
       # custom source
-      assert_equal 3, queued('foo', source: 'baz')
+      assert_equal 3, queued("foo", tags: { hostname: "baz" })
 
       # different counter
       assert_equal 2, queued('bar')
@@ -53,39 +55,41 @@ class TrackerRemoteTest < Minitest::Test
     def test_counter_persistent_through_flush
       tracker.increment 'knightrider'
       tracker.increment 'badguys', sporadic: true
-      assert_equal 1, collector.counters['knightrider']
-      assert_equal 1, collector.counters['badguys']
+      assert_equal 1, collector.counters['knightrider'][:value]
+      assert_equal 1, collector.counters['badguys'][:value]
 
       tracker.flush
-      assert_equal 0, collector.counters['knightrider']
+      assert_equal 0, collector.counters['knightrider'][:value]
       assert_nil collector.counters['badguys']
     end
 
     def test_flush_should_send_measures_and_timings
-      tracker.timing  'request.time.total', 122.1
+      tracker.timing  "request.time", 122.1
       tracker.measure 'items_bought', 20
-      tracker.timing  'request.time.total', 81.3
-      tracker.timing  'jobs.queued', 5, source: 'worker.3'
+      tracker.timing  "request.time", 81.3
+      tracker.timing  "jobs.queued", 5, tags: { hostname: "worker.3" }
       @queued = tracker.queued
       tracker.flush
 
+      sleep 15 # TODO: retry logic for replica delay
+
       # metrics are SSA, so should exist but won't have measurements yet
-      metric_names = client.list.map { |m| m['name'] }
-      assert metric_names.include?('request.time.total'), 'request.time.total should be present'
+      metric_names = client.metrics.map { |m| m['name'] }
+      assert metric_names.include?('request.time'), 'request.time should be present'
       assert metric_names.include?('items_bought'), 'request.time.db should be present'
 
-      assert_equal 2, queued('request.time.total')[:count]
-      assert_in_delta 203.4, queued('request.time.total')[:sum], 0.1
+      assert_equal 2, queued("request.time", tags: tags)[:count]
+      assert_in_delta 203.4, queued("request.time", tags: tags)[:sum], 0.1
 
-      assert_equal 1, queued('items_bought')[:count]
-      assert_in_delta 20, queued('items_bought')[:sum], 0.1
+      assert_equal 1, queued("items_bought", tags: tags)[:count]
+      assert_in_delta 20, queued("items_bought", tags: tags)[:sum], 0.1
 
-      assert_equal 1, queued('jobs.queued', source: 'worker.3')[:count]
-      assert_in_delta 5, queued('jobs.queued', source: 'worker.3')[:sum], 0.1
+      assert_equal 1, queued("jobs.queued", tags: { hostname: "worker.3" })[:count]
+      assert_in_delta 5, queued("jobs.queued", tags: { hostname: "worker.3" })[:sum], 0.1
     end
 
     def test_flush_should_purge_measures_and_timings
-      tracker.timing  'request.time.total', 122.1
+      tracker.timing  "request.time", 122.1
       tracker.measure 'items_bought', 20
       tracker.flush
 
@@ -94,29 +98,33 @@ class TrackerRemoteTest < Minitest::Test
     end
 
     def test_flush_respects_prefix
+      tags = { hostname: "metrics-web-stg-1" }
       config.prefix = 'testyprefix'
 
-      tracker.timing 'mytime', 221.1
+      tracker.timing "mytime", 221.1, tags: tags
       tracker.increment 'mycount', 4
       @queued = tracker.queued
       tracker.flush
 
-      metric_names = client.list.map { |m| m['name'] }
+      sleep 15 # TODO: retry logic for replica delay
+
+      metric_names = client.metrics.map { |m| m['name'] }
+
       assert metric_names.include?('testyprefix.mytime'),
         'testyprefix.mytime should be present'
       assert metric_names.include?('testyprefix.mycount'), '
         testyprefix.mycount should be present'
 
-      assert_equal 1, queued('testyprefix.mytime')[:count]
+      assert_equal 1, queued("testyprefix.mytime", tags: tags)[:count]
       assert_equal 4, queued('testyprefix.mycount')
     end
 
     def test_flush_recovers_from_failure
       # create a metric foo of counter type
-      client.submit foo: {type: :counter, value: 12}
+      client.submit test_counter: { type: :counter, value: 12 }
 
       # failing flush - submit a foo measurement as a gauge (type mismatch)
-      tracker.measure :foo, 2.12
+      tracker.measure :test_counter, 2.12
 
       # won't be accepted
       tracker.flush
@@ -124,7 +132,7 @@ class TrackerRemoteTest < Minitest::Test
       tracker.measure :boo, 2.12
       tracker.flush
 
-      metric_names = client.list.map { |m| m['name'] }
+      metric_names = client.metrics.map { |m| m['name'] }
       assert metric_names.include?('boo')
     end
 
@@ -135,24 +143,24 @@ class TrackerRemoteTest < Minitest::Test
       @queued = tracker.queued
       tracker.flush
 
-      metric_names = client.list.map { |m| m['name'] }
+      metric_names = client.metrics.map { |m| m['name'] }
       assert metric_names.include?('foo')
 
       # should be sending value for foo
       assert_equal 1.0, queued('foo')
     end
 
-    def test_flush_handles_invalid_sources_names
-      tracker.increment :foo, source: 'atreides'         # valid
-      tracker.increment :bar, source: 'glébnöst'         # invalid
-      tracker.measure 'baz', 2.25, source: 'b/l/ak/nok'  # invalid
+    def test_flush_handles_invalid_tags
+      tracker.increment :foo, tags: { hostname: "atreides" }        # valid
+      tracker.increment :bar, tags: { hostname: "glébnöst" }        # invalid
+      tracker.measure 'baz', 2.25, tags: { hostname: "b/l/ak/nok" } # invalid
       @queued = tracker.queued
       tracker.flush
 
-      metric_names = client.list.map { |m| m['name'] }
+      metric_names = client.metrics.map { |m| m['name'] }
       assert metric_names.include?('foo')
 
-      assert_equal 1.0, queued('foo', source: 'atreides')
+      assert_equal 1.0, queued("foo", tags: { hostname: "atreides" })
     end
 
     private
@@ -176,29 +184,29 @@ class TrackerRemoteTest < Minitest::Test
     # wrapper to make api format more easy to query
     def queued(name, opts={})
       raise "No queued found" unless @queued
-      source = opts[:source]  || nil
+      tags_query = opts.fetch(:tags, nil)
 
-      @queued[:gauges].each do |g|
-        if g[:name] == name.to_s && g[:source] == source
-          if g[:count]
+      @queued[:measurements].each do |measurement|
+        if measurement[:name] == name.to_s && measurement[:tags] == tags_query || measurement[:name] == name.to_s && @queued[:tags] == tags_query
+          if measurement[:count]
             # complex metric, return the whole hash
-            return g
+            return measurement
           else
             # return just the value
-            return g[:value]
+            return measurement[:value]
           end
         end
       end
       raise "No queued entry with '#{name}' found."
     end
 
-    def source
-      @tracker.qualified_source
+    def tags
+      @tracker.send(:tags)
     end
 
     def delete_all_metrics
-      metric_names = client.list.map { |metric| metric['name'] }
-      client.delete(*metric_names) if !metric_names.empty?
+      metric_names = client.metrics.map { |metric| metric['name'] }
+      client.delete_metrics(*metric_names) if !metric_names.empty?
     end
 
   else

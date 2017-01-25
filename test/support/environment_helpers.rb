@@ -7,7 +7,7 @@ module EnvironmentHelpers
     ENV.delete('LIBRATO_USER')
     ENV.delete('LIBRATO_TOKEN')
     ENV.delete('LIBRATO_PROXY')
-    ENV.delete('LIBRATO_SOURCE')
+    ENV.delete("LIBRATO_TAGS")
     ENV.delete('LIBRATO_PREFIX')
     ENV.delete('LIBRATO_SUITES')
     ENV.delete('LIBRATO_LOG_LEVEL')

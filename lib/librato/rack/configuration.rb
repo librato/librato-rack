@@ -1,5 +1,3 @@
-
-
 module Librato
   class Rack
     # Holds configuration for Librato::Rack middleware to use.
@@ -16,17 +14,17 @@ module Librato
 
       DEFAULT_SUITES = [:rack, :rack_method, :rack_status]
 
-      attr_accessor :user, :token, :autorun, :api_endpoint, :tracker,
-                    :source_pids, :log_level, :log_prefix, :log_target,
-                    :disable_rack_metrics, :flush_interval, :proxy, :suites
-      attr_reader :prefix, :source, :deprecations
+      attr_accessor :api_endpoint, :autorun, :disable_rack_metrics,
+                    :flush_interval, :log_level, :log_prefix,
+                    :log_target, :proxy, :suites,
+                    :tags, :token, :tracker, :user
+      attr_reader :deprecations, :prefix
 
       def initialize
         # set up defaults
         self.tracker = nil
         self.api_endpoint = Librato::Metrics.api_endpoint
         self.flush_interval = 60
-        self.source_pids = false
         self.log_prefix = '[librato-rack] '
         @listeners = []
         @deprecations = []
@@ -50,8 +48,8 @@ module Librato
         end
       end
 
-      def explicit_source?
-        !!@explicit_source
+      def has_tags?
+        @tags && !@tags.empty?
       end
 
       # check environment variables and capture current state
@@ -61,7 +59,7 @@ module Librato
         self.token = ENV['LIBRATO_TOKEN']
         self.autorun = detect_autorun
         self.prefix = ENV['LIBRATO_PREFIX']
-        self.source = ENV['LIBRATO_SOURCE']
+        self.tags = build_tags
         self.log_level = ENV['LIBRATO_LOG_LEVEL'] || :info
         self.proxy = ENV['LIBRATO_PROXY'] || ENV['https_proxy'] || ENV['http_proxy']
         self.event_mode = ENV['LIBRATO_EVENT_MODE']
@@ -78,14 +76,9 @@ module Librato
         @listeners << listener
       end
 
-      def source=(src)
-        @source = src
-        @explicit_source = !!@source
-      end
-
       def dump
         fields = {}
-        %w{user token log_level source prefix flush_interval source_pids suites}.each do |field|
+        %w{flush_interval log_level prefix suites tags token user}.each do |field|
           fields[field.to_sym] = self.send(field)
         end
         fields[:metric_suites] = metric_suites.fields
@@ -127,6 +120,21 @@ module Librato
           true
         else
           nil
+        end
+      end
+
+      def build_tags
+        tags = {}
+        tags.tap do
+          if ENV["LIBRATO_TAGS"]
+            ENV["LIBRATO_TAGS"].split(",")
+              .map { |pairs| pairs.split("=") }
+                .map { |k,v| tags[k.to_sym] = v }
+
+            if tags.all? {|k,v| k.nil? || v.nil? }
+              raise InvalidTagConfiguration, "Invalid tag configuration format. Example: foo=bar,baz=qux"
+            end
+          end
         end
       end
 
