@@ -1,3 +1,6 @@
+### master
+* Add support for tagged measurements (#54)
+
 ### Version 1.1.0
 * Fix deprecation warnings in ruby 2.4 (#57, Ben Radler)
 

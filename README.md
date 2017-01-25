@@ -49,7 +49,7 @@ If you don't have a Metrics account already, [sign up](https://metrics.librato.c
 
 By default you can use `LIBRATO_USER` and `LIBRATO_TOKEN` to pass your account data to the middleware. While these are the only required variables, there are a few more optional environment variables you may find useful.
 
-* `LIBRATO_TAGS` - the default top-level tags to use for submitted metrics. Format is comma-separated key=value pairs, e.g. `region=us-east,az=b`. If this is not set, `host` of the executing machine is detected and set as the default tag
+* `LIBRATO_TAGS` - the default tags to use for submitted metrics. Format is comma-separated key=value pairs, e.g. `region=us-east,az=b`. If not set, `host` of the executing machine is detected and set as default tag
 * `LIBRATO_SUITES` - manage which metrics librato-rack will report. See more in [metrics suites](#metric-suites).
 * `LIBRATO_PREFIX` - a prefix which will be prepended to all metric names
 * `LIBRATO_LOG_LEVEL` - see logging section for more
@@ -76,15 +76,13 @@ If you are using the [Librato Metrics Heroku addon](https://addons.heroku.com/li
 
 NOTE: if Heroku idles your application no measurements will be sent until it receives another request and is restarted. If you see intermittent gaps in your measurements during periods of low traffic this is the most likely cause.
 
-## Top-level Tags
+## Default Tags
 
-**Tagged measurements are only available in the Tags Beta. Please [contact Librato support](mailto:support@librato.com) to join the beta.**
+Librato Metrics supports tagged measurements that are associated with a metric, one or more tag pairs, and a point in time. For more information on tagged measurements, visit our [API documentation](https://www.librato.com/docs/api/#measurements).
 
-Librato Metrics supports tagged measurements that are associated with a metric, one or more tag pairs, and a point in time. For more information on tagged measurements, visit our [API documentation](https://www.librato.com/docs/api/#measurements-beta).
+##### Detected Tags
 
-##### Default Tags
-
-By default, `host` is detected and applied as top-level tags for submitted measurements. Optionally, you can override the detected values, e.g. `LIBRATO_TAGS=host=myapp-stg-1`
+By default, `host` is detected and applied as a default tag for submitted measurements. Optionally, you can override the detected values, e.g. `LIBRATO_TAGS=host=myapp-prod-1`
 
 ##### Custom Tags
 
@@ -135,14 +133,23 @@ Tracking anything that interests you is easy with Metrics. There are four primar
 
 Use for tracking a running total of something _across_ requests, examples:
 
-    # increment the 'sales_completed' metric by one
-    Librato.increment 'sales.completed'
+```ruby
+# increment the 'sales_completed' metric by one
+Librato.increment 'sales.completed'
+# => {:host=>"myapp-prod-1"}
 
-    # increment by five
-    Librato.increment 'items.purchased', by: 5
+# increment by five
+Librato.increment 'items.purchased', by: 5
+# => {:host=>"myapp-prod-1"}
 
-    # increment with custom per-measurement tags
-    Librato.increment 'user.purchases', tags: { user: user.id, currency: 'USD', amount: '20' }
+# increment with custom per-measurement tags
+Librato.increment 'user.purchases', tags: { user_id: user.id, currency: 'USD' }
+# => {:user_id=>43, :currency=>"USD"}
+
+# increment with custom per-measurement tags and inherited default tags
+Librato.increment 'user.purchases', tags: { user_id: user.id, currency: 'USD' }, inherit_tags: true
+# => {:host=>"myapp-prod-1", :user_id=>43, :currency=>"USD"}
+```
 
 Other things you might track this way: user signups, requests of a certain type or to a certain route, total jobs queued or processed, emails sent or received
 
@@ -153,7 +160,7 @@ Note that `increment` is primarily used for tracking the rate of occurrence of s
 Especially with custom per-measurement tags you may want the opposite behavior - reporting a measurement only during intervals where `increment` was called on the metric:
 
     # report a value for 'user.uploaded_file' only during non-zero intervals
-    Librato.increment 'user.uploaded_file', tags: { user: user.id, file_size: '390MB' }, sporadic: true
+    Librato.increment 'user.uploaded_file', tags: { user: user.id, bucket: bucket.name }, sporadic: true
 
 #### measure
 
@@ -224,7 +231,7 @@ If you are using `librato-rack` with sidekiq, [see these notes about setup](http
 
 ## Cross-Process Aggregation
 
-`librato-rack` submits measurements back to the Librato platform on a _per-process_ basis. By default these measurements are then combined into a single measurement per top-level tags (default is `host`) before persisting the data.
+`librato-rack` submits measurements back to the Librato platform on a _per-process_ basis. By default these measurements are then combined into a single measurement per default tags (detects `host`) before persisting the data.
 
 For example if you have 4 hosts with 8 unicorn instances each (i.e. 32 processes total), on the Metrics site you'll find 4 data streams (1 per host) instead of 32.
 Current pricing applies after aggregation, so in this case you will be charged for 4 streams instead of 32.
