@@ -26,6 +26,9 @@ class QueueWait
     when '/with_period'
       env['HTTP_X_REQUEST_START'] = "%10.3f" % Time.now
       sleep 0.025
+    when '/with_time_drift'
+      env['HTTP_X_REQUEST_START'] = ((Time.now.to_f * 1000).to_i + 10).to_s # 10s in the future
+      sleep 0.005
     end
     @app.call(env)
   end

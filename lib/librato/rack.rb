@@ -152,9 +152,11 @@ module Librato
             case queue_start.length
             when 16 # microseconds
               wait = ((Time.now.to_f * 1000000).to_i - queue_start.to_i) / 1000.0
+              wait = 0 if wait < 0 # make up for potential time drift between the routing server and the application server
               tracker.timing 'rack.request.queue.time', wait, percentile: 95
             when 13 # milliseconds
               wait = (Time.now.to_f * 1000).to_i - queue_start.to_i
+              wait = 0 if wait < 0 # make up for potential time drift between the routing server and the application server
               tracker.timing 'rack.request.queue.time', wait, percentile: 95
             end
           end
