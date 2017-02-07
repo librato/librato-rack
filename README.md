@@ -7,6 +7,10 @@ librato-rack
 
 Currently Ruby 1.9.2+ is required.
 
+## Upgrading
+
+Upgrading from version 1.x to 2.x introduces breaking changes for legacy sources. Please contact [support@librato.com](mailto:support@librato.com) to migrate an existing Librato account.
+
 ## Quick Start
 
 Install `librato-rack` as middleware in your application:
