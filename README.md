@@ -163,8 +163,10 @@ Note that `increment` is primarily used for tracking the rate of occurrence of s
 
 Especially with custom per-measurement tags you may want the opposite behavior - reporting a measurement only during intervals where `increment` was called on the metric:
 
-    # report a value for 'user.uploaded_file' only during non-zero intervals
-    Librato.increment 'user.uploaded_file', tags: { user: user.id, bucket: bucket.name }, sporadic: true
+```ruby
+# report a value for 'user.uploaded_file' only during non-zero intervals
+Librato.increment 'user.uploaded_file', tags: { user_id: user.id, bucket: bucket.name }, sporadic: true
+```
 
 #### measure
 
