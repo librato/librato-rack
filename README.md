@@ -3,6 +3,12 @@ librato-rack
 
 [![Gem Version](https://badge.fury.io/rb/librato-rack.png)](http://badge.fury.io/rb/librato-rack) [![Build Status](https://secure.travis-ci.org/librato/librato-rack.png?branch=master)](http://travis-ci.org/librato/librato-rack) [![Code Climate](https://codeclimate.com/github/librato/librato-rack.png)](https://codeclimate.com/github/librato/librato-rack)
 
+---
+
+**NOTE:** Starting with version 2.0.0 librato-rack requires a Librato account that [supports tagged metrics](https://www.librato.com/docs/kb/faq/account_questions/tags_or_sources/). If you have a Librato account that supports the `source` dimension please use the [1.x.x version](https://rubygems.org/gems/librato-rack/versions/1.1.0).
+
+---
+
 `librato-rack` provides rack middleware which will report key statistics for your rack applications to [Librato Metrics](https://metrics.librato.com/). It will also allow you to easily track your own custom metrics. Metrics are delivered asynchronously behind the scenes so they won't affect performance of your requests.
 
 Currently Ruby 1.9.2+ is required.
