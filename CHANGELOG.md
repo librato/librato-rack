@@ -1,3 +1,6 @@
+### Version 2.0.1
+* Ensure `rack.request.queue.time` metric is not negative (#68, Austin Schneider)
+
 ### Version 2.0.0
 * Add support for tagged measurements (#54)
 
