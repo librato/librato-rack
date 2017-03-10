@@ -2,7 +2,7 @@
 * Ensure `rack.request.queue.time` metric is not negative (#68, Austin Schneider)
 
 ### Version 2.0.0
-* Add support for tagged measurements (#54)
+* Add support for tagged measurements (#54). **NOTE**: This version introduces breaking changes for legacy sources. Please contact support@librato.com to learn more.
 
 ### Version 1.1.0
 * Fix deprecation warnings in ruby 2.4 (#57, Ben Radler)
