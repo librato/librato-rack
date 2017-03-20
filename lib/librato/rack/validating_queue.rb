@@ -8,12 +8,18 @@ module Librato
       DEFAULT_TAGS_LIMIT = 4
       METRIC_NAME_REGEX = /\A[-.:_\w]{1,255}\z/
       TAGS_KEY_REGEX = /\A[-.:_\w]{1,64}\z/
-      TAGS_VALUE_REGEX = /\A[-.:_\w]{1,256}\z/
+      TAGS_VALUE_REGEX = /\A[-.:_\w\s]{1,255}\z/
 
       attr_accessor :logger
 
-      # screen all measurements for validity before sending
       def submit
+        validate_measurements
+
+        super
+      end
+
+      # screen all measurements for validity before sending
+      def validate_measurements
         @queued[:measurements].delete_if do |entry|
           name = entry[:name].to_s
           tags = entry[:tags]
@@ -27,8 +33,6 @@ module Librato
             false # preserve
           end
         end
-
-        super
       end
 
       private
