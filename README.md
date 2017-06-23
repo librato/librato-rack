@@ -114,7 +114,7 @@ use Librato::Rack, :config => config
 
 The metrics recorded by `librato-rack` are organized into named metric suites that can be selectively enabled/disabled:
 
-* `rack`: The `rack.request.total`, `rack.request.time`, `rack.request.slow`, and `rack.request.queue.time` metrics
+* `rack`: The `rack.request.total`, `rack.request.time`, `rack.request.slow`, `rack.request.queue.time`, and `rack.processes` metrics
 * `rack_status`: `rack.request.status` metric with `status` tag name and HTTP status code tag value, e.g. `status=200`
 * `rack_method`: `rack.request.method` metric with `method` tag name and HTTP method tag value, e.g. `method=POST`
 
