@@ -93,6 +93,23 @@ module Librato
         ENV.delete('LIBRATO_SUITES')
       end
 
+      def test_rack_process_queued
+        ENV['LIBRATO_SUITES'] = 'all'
+        tracker = Tracker.new(Configuration.new)
+        refute_nil tracker.queued[:measurements]
+        refute_nil tracker.queued[:measurements].detect { |measurement| measurement[:name] == 'rack.processes' }
+      ensure
+        ENV.delete('LIBRATO_SUITES')
+      end
+
+      def test_rack_process_not_queued
+        ENV['LIBRATO_SUITES'] = 'none'
+        tracker = Tracker.new(Configuration.new)
+        assert_nil tracker.queued[:measurements]
+      ensure
+        ENV.delete('LIBRATO_SUITES')
+      end
+
       private
 
       def buffer_lines
