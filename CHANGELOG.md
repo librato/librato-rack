@@ -1,3 +1,6 @@
+### Version 2.0.3
+* Fix bug to prevent `rack.processes` reporting when `rack` suite is disabled (#75, Sam Moore)
+
 ### Version 2.0.2
 * Update `ValidatingQueue` tag value restrictions (#72)
 
