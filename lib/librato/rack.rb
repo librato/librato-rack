@@ -50,7 +50,7 @@ module Librato
     EOS
 
     RECORD_RACK_METHOD_BODY = <<-'EOS'
-      method_tags = { method: http_method.downcase! }
+      method_tags = { method: http_method.downcase }
       tracker.increment "rack.request.method", tags: method_tags, inherit_tags: true
       tracker.timing "rack.request.method.time", duration, tags: method_tags, inherit_tags: true
     EOS
