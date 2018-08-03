@@ -61,6 +61,13 @@ class RequestTest < Minitest::Test
     assert_equal 1, aggregate.fetch("rack.request.method.time", tags: @tags.merge({ method: "post" }))[:count]
   end
 
+  def test_request_method_not_mutated
+    get '/', {}, {'REQUEST_METHOD' => "GET".freeze}
+
+    assert_equal 1, counters.fetch("rack.request.method", tags: @tags.merge({ method: "GET" }))[:value]
+    assert_equal 1, aggregate.fetch("rack.request.method.time", tags: @tags.merge({ method: "get" }))[:count]
+  end
+
   def test_track_exceptions
     begin
       get '/exception'
