@@ -10,6 +10,7 @@ gem 'mocha', :require => false
 
 # debugging
 gem 'pry'
+gem 'pry-byebug'
 
 # benchmarking
 gem 'benchmark_suite'

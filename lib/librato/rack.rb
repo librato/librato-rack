@@ -55,9 +55,9 @@ module Librato
 
     RECORD_RACK_METHOD_BODY = <<-'EOS'
       group.group 'method' do |m|
-        http_method.downcase!
-        m.increment http_method
-        m.timing "#{http_method}.time", duration
+        method = http_method.downcase
+        m.increment method
+        m.timing "#{method}.time", duration
       end
     EOS
 
