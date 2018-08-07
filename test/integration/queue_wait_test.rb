@@ -32,7 +32,7 @@ class QueueWaitTest < Minitest::Test
     get '/micro'
 
     # give jruby a bit more time since it can be slow
-    delta = defined?(JRUBY_VERSION) ? 5 : 4
+    delta = defined?(JRUBY_VERSION) ? 6 : 4
 
     # puts "micro: #{aggregate["rack.request.queue.time"].inspect}"
     assert_equal 1, aggregate["rack.request.queue.time"][:count],
