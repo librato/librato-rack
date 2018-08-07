@@ -46,20 +46,13 @@ class QueueWaitTest < Minitest::Test
   def test_with_t
     get '/with_t'
 
+    # give jruby a bit more time since it can be slow
+    delta = defined?(JRUBY_VERSION) ? 10 : 6
+
     # puts "micro: #{aggregate["rack.request.queue.time"].inspect}"
     assert_equal 1, aggregate["rack.request.queue.time"][:count],
       'should track total queue time'
-    assert_in_delta 20, aggregate["rack.request.queue.time"][:sum], 6
-  end
-
-  def test_with_period
-    get '/with_period'
-
-    # give jruby a bit more time since it can be slow
-    delta = defined?(JRUBY_VERSION) ? 10 : 6
-    assert_equal 1, aggregate["rack.request.queue.time"][:count],
-      'should track total queue time'
-    assert_in_delta 25, aggregate["rack.request.queue.time"][:sum], delta
+    assert_in_delta 20, aggregate["rack.request.queue.time"][:sum], delta
   end
 
   def test_with_period
