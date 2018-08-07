@@ -19,7 +19,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency "librato-metrics", "~> 2.1", ">= 2.1.0"
   s.add_dependency "hetchy", "~> 1.0"
-  s.add_development_dependency "minitest", "~> 0"
+  s.add_development_dependency "minitest", "~> 5"
 
   s.cert_chain = ["certs/librato-public.pem"]
   if ENV['GEM_SIGNING_KEY']
