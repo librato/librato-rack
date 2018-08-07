@@ -17,9 +17,9 @@ Gem::Specification.new do |s|
   s.files = Dir["{app,config,db,lib}/**/*"] + ["LICENSE", "Rakefile", "README.md", "CHANGELOG.md"]
   s.test_files = Dir["test/**/*"]
 
-  s.add_dependency "librato-metrics", "~> 2.1.0"
+  s.add_dependency "librato-metrics", "~> 2.1", ">= 2.1.0"
   s.add_dependency "hetchy", "~> 1.0"
-  s.add_development_dependency "minitest"
+  s.add_development_dependency "minitest", "~> 0"
 
   s.cert_chain = ["certs/librato-public.pem"]
   if ENV['GEM_SIGNING_KEY']
