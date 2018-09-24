@@ -34,6 +34,15 @@ module Librato
         refute_empty @queue.queued[:measurements]
       end
 
+      def test_valid_tag_value_with_question_mark
+        @queue.add valid_metric_name: {
+          value: rand(100),
+          tags: { valid_tag_name: 'valid_tag_value?' }
+        }
+        @queue.validate_measurements
+        refute_empty @queue.queued[:measurements]
+      end
+
       def test_invalid_metric_name
         @queue.add 'invalid metric name' => {
           value: rand(100),

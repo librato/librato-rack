@@ -8,7 +8,7 @@ module Librato
       DEFAULT_TAGS_LIMIT = 4
       METRIC_NAME_REGEX = /\A[-.:_\w]{1,255}\z/
       TAGS_KEY_REGEX = /\A[-.:_\w]{1,64}\z/
-      TAGS_VALUE_REGEX = /\A[-.:_\\\/\w ]{1,255}\z/
+      TAGS_VALUE_REGEX = /\A[-.:_?\\\/\w ]{1,255}\z/
 
       attr_accessor :logger
 
