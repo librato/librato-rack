@@ -20,7 +20,7 @@ class QueueWaitTest < Minitest::Test
     get '/milli'
 
     # give jruby a bit more time since it can be slow
-    delta = defined?(JRUBY_VERSION) ? 5 : 4
+    delta = defined?(JRUBY_VERSION) ? 8 : 4
 
     # puts "milli: #{aggregate["rack.request.queue.time"].inspect}"
     assert_equal 1, aggregate["rack.request.queue.time"][:count],
