@@ -69,6 +69,7 @@ By default you can use `LIBRATO_USER` and `LIBRATO_TOKEN` to pass your account d
 * `LIBRATO_PROXY` - HTTP proxy to use when connecting to the Librato API (can also use the `https_proxy` or `http_proxy` environment variable commonly supported by Linux command line utilities)
 * `LIBRATO_AUTORUN` - set to `'0'` to prevent the reporter from starting, useful if you don't want `librato-rack` to start under certain circumstances
 * `LIBRATO_EVENT_MODE` - use with evented apps, see "Use with EventMachine" below
+* `LIBRATO_PERCENTILES` - the timing percentiles to capture. Default is p95. Provide as a comma separated list, e.g. `95,99`
 
 ##### Use a configuration object
 
