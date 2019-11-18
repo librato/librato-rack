@@ -22,6 +22,7 @@ module Librato
         ENV["LIBRATO_TAGS"] = "hostname=metrics-web-stg-1"
         ENV['LIBRATO_PROXY'] = 'http://localhost:8080'
         ENV['LIBRATO_SUITES'] = 'foo,bar'
+        ENV['LIBRATO_PERCENTILES'] = '95,99'
         expected_tags = { hostname: "metrics-web-stg-1" }
         config = Configuration.new
         assert_equal 'foo@bar.com', config.user
@@ -29,6 +30,7 @@ module Librato
         assert_equal expected_tags, config.tags
         assert_equal 'http://localhost:8080', config.proxy
         assert_equal 'foo,bar', config.suites
+        assert_equal [95, 99], config.percentiles
         #assert Librato::Rails.explicit_source, 'source is explicit'
       end
 

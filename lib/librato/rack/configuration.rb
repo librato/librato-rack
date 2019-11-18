@@ -16,7 +16,7 @@ module Librato
 
       attr_accessor :api_endpoint, :autorun, :disable_rack_metrics,
                     :flush_interval, :log_level, :log_prefix,
-                    :log_target, :proxy, :suites,
+                    :log_target, :percentiles, :proxy, :suites,
                     :tags, :token, :tracker, :user
       attr_reader :deprecations, :prefix
 
@@ -64,6 +64,7 @@ module Librato
         self.proxy = ENV['LIBRATO_PROXY'] || ENV['https_proxy'] || ENV['http_proxy']
         self.event_mode = ENV['LIBRATO_EVENT_MODE']
         self.suites = ENV['LIBRATO_SUITES'] || ''
+        self.percentiles = ENV['LIBRATO_PERCENTILES']&.split(',')&.map(&:to_i) || [95]
         check_deprecations
       end
 
