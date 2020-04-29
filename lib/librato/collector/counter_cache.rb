@@ -80,7 +80,7 @@ module Librato
       def increment(counter, options={})
         metric = counter.to_s
         if options.is_a?(INTEGER_CLASS)
-          # suppport legacy style
+          # support legacy style
           options = {by: options}
         end
         by = options[:by] || 1
